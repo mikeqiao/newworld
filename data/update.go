@@ -1,12 +1,15 @@
 package data
 
 import (
+	"sync"
+
 	"github.com/mikeqiao/newworld/db/redis"
 )
 
 type UpdateMod struct {
 	table  string
 	do     bool
+	mutex  sync.RWMutex
 	update map[string]interface{}
 }
 
@@ -15,6 +18,8 @@ func (u *UpdateMod) Init() {
 }
 
 func (u *UpdateMod) Update() {
+	u.mutex.Lock()
+	defer u.mutex.Unlock()
 	if u.do {
 		redis.R.Hash_SetDataMap(u.table, u.update)
 		u.do = false
@@ -23,6 +28,8 @@ func (u *UpdateMod) Update() {
 }
 
 func (u *UpdateMod) AddData(key string, value interface{}) {
+	u.mutex.Lock()
+	defer u.mutex.Unlock()
 	u.update[key] = value
 	u.do = true
 }
