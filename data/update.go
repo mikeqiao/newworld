@@ -34,3 +34,8 @@ func (u *UpdateMod) AddData(key string, value interface{}) {
 	u.update[key] = value
 	u.do = true
 }
+
+func (u *UpdateMod) GetAllData() map[string]string {
+	data, _ := redis.R.Hash_GetAllData(u.table)
+	return data
+}
