@@ -1,7 +1,7 @@
 package data
 
 import (
-	"github.com/mikeqiao/newworld/newworld/db/redis"
+	"github.com/mikeqiao/newworld/db/redis"
 )
 
 type UpdateMod struct {
