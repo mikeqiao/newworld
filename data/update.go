@@ -13,7 +13,8 @@ type UpdateMod struct {
 	update map[string]interface{}
 }
 
-func (u *UpdateMod) Init() {
+func (u *UpdateMod) Init(table string) {
+	u.table = table
 	u.update = make(map[string]interface{})
 }
 
