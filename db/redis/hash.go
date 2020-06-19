@@ -32,3 +32,20 @@ func (r *CRedis) Hash_SetDataMap(table string, data map[string]interface{}) erro
 	c.Close()
 	return err
 }
+
+func (r *CRedis) Hash_DelDataMap(table string, data map[string]interface{}) error {
+	c := r.Pool.Get()
+	args := make([]interface{}, 1+len(data))
+	args[0] = table
+	i := 1
+	for k, _ := range data {
+		args[i] = k
+		i += 1
+	}
+	_, err := c.Do("hdel", args...)
+	if nil != err {
+		//log.Error("error table:%v, data:%v, err:%v", table, data, err)
+	}
+	c.Close()
+	return err
+}
