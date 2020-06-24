@@ -1,0 +1,16 @@
+syntax = "proto3";
+option go_package = ".;proto";
+
+package proto;
+
+
+message CallMsgInfo
+{
+	uint32	msgType  =1;  		//消息类型 1 请求服务 2 消息回调 3 推送消息
+	uint32	callID  =2; 		//请求的服务ID
+	string	CallBackID   =3; 	//回调的事件ID(12个长度的string)
+	uint64 	uId = 4;     		//发起请求者
+	repeated uint64 uIdList = 5;//推送消息的接收者
+	uint32  msgid = 6; 			//消息号
+	bytes  Info = 7; 			//消息内容
+}

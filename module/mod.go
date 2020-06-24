@@ -1,18 +1,28 @@
 package module
 
+import (
+	"reflect"
+)
+
 type Mod struct {
 	Uid      uint64
 	Name     string
-	server   *RpcService
-	FuncList map[uint32]interface{}
-	Call     map[uint64]interface{}
-	CallBack map[uint64]interface{}
+	Server   *RpcService
+	FuncList map[uint32]*SFunc
+	CallBack map[string]interface{}
+}
+
+type SFunc struct {
+	In  reflect.Type //请求数据类型
+	Out reflect.Type //返回数据类型
+	F   interface{}  //服务
 }
 
 func (m *Mod) Init() {
-	m.server = new(RpcService)
-	m.server.Init()
-	m.FuncList = make(map[uint32]interface{})
+	m.Server = new(RpcService)
+	m.Server.Init()
+	m.FuncList = make(map[uint32]*SFunc)
+	m.CallBack = make(map[string]interface{})
 }
 
 func (m *Mod) Start() {
@@ -28,5 +38,10 @@ func (m *Mod) Close() {
 }
 
 func (m *Mod) Route() {
+
+}
+
+func (m *Mod) GetAllFunc() map[uint32]*SFunc {
+	return m.FuncList
 
 }

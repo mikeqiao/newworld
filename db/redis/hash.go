@@ -2,13 +2,14 @@ package redis
 
 import (
 	"github.com/gomodule/redigo/redis"
+	"github.com/mikeqiao/newworld/log"
 )
 
 func (r *CRedis) Hash_GetAllData(table string) (map[string]string, error) {
 	c := r.Pool.Get()
 	value, err := redis.StringMap(c.Do("hgetall", table))
 	if nil != err {
-		//	log.Error("table:%v, error:%v", table, err)
+		log.Error("table:%v, error:%v", table, err)
 	}
 
 	c.Close()
@@ -27,7 +28,7 @@ func (r *CRedis) Hash_SetDataMap(table string, data map[string]interface{}) erro
 	}
 	_, err := c.Do("hmset", args...)
 	if nil != err {
-		//	log.Error("error table:%v, data:%v", table, data)
+		log.Error("error table:%v, data:%v", table, data)
 	}
 	c.Close()
 	return err
@@ -44,7 +45,7 @@ func (r *CRedis) Hash_DelDataMap(table string, data map[string]interface{}) erro
 	}
 	_, err := c.Do("hdel", args...)
 	if nil != err {
-		//log.Error("error table:%v, data:%v, err:%v", table, data, err)
+		log.Error("error table:%v, data:%v, err:%v", table, data, err)
 	}
 	c.Close()
 	return err

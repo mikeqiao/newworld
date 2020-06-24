@@ -3,65 +3,34 @@ package net
 import (
 	"net"
 	"sync"
+	"time"
+
+	"github.com/mikeqiao/newworld/log"
 )
 
 type TCPServer struct {
-	UId  uint64
-	Name string
+	UId  uint64       //监听服务唯一ID
+	Name string       // 监听服务名称
 	Addr string       // 监听的地址端口
 	ln   net.Listener // 监听
 	//agent
-	PendingWriteNum int                                 // (发送消息)阻塞等待数量
-	NewAgent        func(*TCPConn, Processor) *TcpAgent // 代理
-
-	conns      ConnList       // 链接list (map)
-	mutexConns sync.Mutex     // 锁
-	wgln       sync.WaitGroup // 监听wait
-	wgConns    sync.WaitGroup // 链接wait
-
-	Processor Processor
-	// msg parser
-	LenMsgLen    int           // 消息长度字段占用字节数
-	MinMsgLen    uint32        // 最小消息长度
-	MaxMsgLen    uint32        // 最大消息长度
-	LittleEndian bool          // 小端字节序
-	msgParser    MessageParser //消息解析器
+	Processor   Processor
+	CreateAgent func(*TCPConn, Processor, uint64) *TcpAgent // 代理
 }
 
 func (this *TCPServer) init() {
 	ln, err := net.Listen("tcp", this.Addr)
 	if err != nil {
-		log.Fatal("%v", err)
+		log.Error("%v", err)
 	}
-
-	if this.PendingWriteNum <= 0 {
-		this.PendingWriteNum = 100
-		log.Release("invalid PendingWriteNum, reset to %v", this.PendingWriteNum)
+	if this.CreateAgent == nil {
+		log.Error("CreateAgent must not be nil")
 	}
-	if this.NewAgent == nil {
-		log.Fatal("NewAgent must not be nil")
-	}
-
 	this.ln = ln
-	this.conns = make(ConnList)
-
-	// msg parser
-	if "Out" == this.Name {
-		msgParser := NewClientMsgParser()
-		msgParser.SetMsgLen(this.LenMsgLen, this.MinMsgLen, this.MaxMsgLen)
-		msgParser.SetByteOrder(this.LittleEndian)
-		this.msgParser = msgParser
-	} else {
-		msgParser := NewMsgParser()
-		msgParser.SetMsgLen(this.LenMsgLen, this.MinMsgLen, this.MaxMsgLen)
-		msgParser.SetByteOrder(this.LittleEndian)
-		this.msgParser = msgParser
-	}
-
 }
 
-func (this *TCPServer) run() {
-	this.wgln.Add(1)
+func (this *TCPServer) run(wg *sync.WaitGroup) {
+	wg.Add(1)
 
 	var tempDelay time.Duration
 	for {
@@ -77,65 +46,27 @@ func (this *TCPServer) run() {
 					tempDelay = max
 				}
 
-				log.Release("accept error: %v; retrying in %v", err, tempDelay)
+				log.Error("accept error: %v; retrying in %v", err, tempDelay)
 				time.Sleep(tempDelay)
 				continue
 			}
-			this.wgln.Done()
+			wg.Done()
 			return
 		}
 		tempDelay = 0
+		//创建了新的链接  创建 agent 加入 conn管理
+		tcpConn := newTCPConn(conn)
+		this.CreateAgent(tcpConn, this.Processor, this.UId)
 
-		this.mutexConns.Lock()
-		if len(this.conns) >= this.MaxConnNum {
-			this.mutexConns.Unlock()
-			conn.Close()
-			log.Debug("too many connections")
-			continue
-		}
-		this.conns[conn] = struct{}{}
-		this.mutexConns.Unlock()
-		this.wgConns.Add(1)
-
-		tcpConn := newTCPConn(conn, this.PendingWriteNum, this.msgParser)
-		agent := this.NewAgent(tcpConn, this.Processor)
-		if "Out" == this.Name {
-			agent.isUpdate = false
-		}
-		agent.SetLocalUID(this.UId)
-		agent.Version = this.Version
-		go func() {
-
-			agent.Start(this.Name)
-			agent.Run()
-			// cleanup
-			tcpConn.Close()
-			this.mutexConns.Lock()
-			delete(this.conns, conn)
-			this.mutexConns.Unlock()
-			agent.Close()
-
-			this.wgConns.Done()
-		}()
 	}
-	this.wgln.Done()
+	wg.Done()
 }
 
-func (this *TCPServer) Start() {
+func (this *TCPServer) Start(wg *sync.WaitGroup) {
 	this.init()
-	this.run()
+	go this.run(wg)
 }
 
 func (this *TCPServer) Close() {
 	this.ln.Close()
-	this.wgln.Wait()
-
-	this.mutexConns.Lock()
-	for conn := range this.conns {
-		conn.Close()
-	}
-
-	this.conns = nil
-	this.mutexConns.Unlock()
-	this.wgConns.Wait()
 }
