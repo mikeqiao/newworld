@@ -14,11 +14,11 @@ import (
 type MsgHandler func(msg interface{}, data *net.UserData)
 
 type Processor struct {
-	FuncList map[uint32]*FuncInfo
+	FuncList map[string]*FuncInfo
 }
 
 type FuncInfo struct {
-	fid    uint32
+	fid    string
 	in     reflect.Type    //请求数据类型
 	out    reflect.Type    //返回数据类型
 	f      interface{}     //服务

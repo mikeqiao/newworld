@@ -17,6 +17,15 @@ type MManager struct {
 	mutex    sync.RWMutex
 }
 
+func NewMod(name string) *mod.Mod {
+	mid := ModManager.GetNewID()
+	m := new(mod.Mod)
+	m.Uid = mid
+	m.Name = name
+	m.Init()
+	return m
+}
+
 func (m *MManager) Init() {
 	m.modList = make(map[uint64]*mod.Mod)
 	m.createid = 0

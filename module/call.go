@@ -7,7 +7,7 @@ import (
 
 type CallInfo struct {
 	ModId   uint64 //module uid
-	FuncId  uint32
+	FuncId  string
 	CF      interface{}   //执行function
 	Cb      interface{}   //callback
 	Args    interface{}   //参数
