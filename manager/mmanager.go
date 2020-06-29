@@ -15,6 +15,7 @@ type MManager struct {
 	createid uint64
 	modList  map[uint64]*mod.Mod
 	mutex    sync.RWMutex
+	wg       *sync.WaitGroup
 }
 
 func NewMod(name string) *mod.Mod {
@@ -27,6 +28,7 @@ func NewMod(name string) *mod.Mod {
 }
 
 func (m *MManager) Init() {
+	m.wg = new(sync.WaitGroup)
 	m.modList = make(map[uint64]*mod.Mod)
 	m.createid = 0
 }
@@ -82,7 +84,7 @@ func (m *MManager) Run() {
 	defer m.mutex.Unlock()
 	for k, v := range m.modList {
 		if nil != v {
-			v.Start()
+			v.Start(m.wg)
 		} else {
 			log.Error("this mod  is nil:%v", k)
 		}

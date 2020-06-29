@@ -26,7 +26,7 @@ type FuncInfo struct {
 }
 
 //解包数据
-func (p *Processor) Unmarshal(data []byte) error {
+func (p *Processor) Unmarshal(a *net.TcpAgent, data []byte) error {
 	msg := new(bmsg.CallMsgInfo)
 	err := proto.Unmarshal(data, msg)
 	if nil != err {
@@ -36,27 +36,73 @@ func (p *Processor) Unmarshal(data []byte) error {
 		switch msg.MsgType {
 		case common.Msg_Req:
 			//找到callid 赋值调用
-			cid := msg.CallID
-			if v, ok := p.FuncList[cid]; ok && nil != v {
+			callId := msg.CallID
+			if v, ok := p.FuncList[callId]; ok && nil != v {
 				cmsg := reflect.New(v.in.Elem()).Interface()
 				err = proto.Unmarshal(msg.Info, cmsg.(proto.Message))
 				if nil != err {
 					if nil != v.server {
-						v.server.Call()
+						udata := new(net.UserData)
+						udata.UId = msg.UId
+						udata.UIdList = msg.UIdList[:]
+						udata.CallId = msg.CallID
+						udata.CallBackId = msg.CallBackID
+						udata.MsgType = msg.MsgType
+						udata.Agent = a
+						if nil != a && 2 == a.Ctype {
+							udata.UId = a.RUId
+						}
+						cb := func(in interface{}, e error) {
+							udata.MsgType = common.Msg_Res
+							a.WriteMsg(udata, in)
+						}
+
+						v.server.Call(v.f, cb, cmsg, udata)
 					} else {
-						log.Error("this service:%v not working", cid)
+						log.Error("this service:%v not working", callId)
 					}
 				} else {
 					log.Error("Unmarshal call msg err:%v", err)
 				}
 			} else {
-				log.Error("no this service:%v", cid)
+				log.Error("no this service:%v", callId)
 			}
 		case common.Msg_Res:
-			//找到callback 赋值调用
-
+			//找到callid 赋值调用
+			callId := msg.CallID
+			if v, ok := p.FuncList[callId]; ok && nil != v {
+				cmsg := reflect.New(v.out.Elem()).Interface()
+				err = proto.Unmarshal(msg.Info, cmsg.(proto.Message))
+				if nil != err {
+					if nil != v.server {
+						cbid := msg.CallBackID
+						v.server.CallBack(cbid, cmsg, err)
+					} else {
+						log.Error("this service:%v not working", callId)
+					}
+				} else {
+					log.Error("Unmarshal call msg err:%v", err)
+				}
+			} else {
+				log.Error("no this service:%v", callId)
+			}
 		case common.Msg_Push:
 			//找到callid 赋值调用 不用解析 in
+			callId := msg.CallID
+			if v, ok := p.FuncList[callId]; ok && nil != v {
+				if nil != v.server {
+					udata := new(net.UserData)
+					udata.UId = msg.UId
+					udata.UIdList = msg.UIdList[:]
+					udata.CallId = msg.CallID
+					udata.CallBackId = msg.CallBackID
+					udata.MsgType = msg.MsgType
+					udata.Agent = a
+					v.server.Call(v.f, nil, msg.Info, udata)
+				} else {
+					log.Error("this service:%v not working", callId)
+				}
+			}
 		default:
 			log.Error("err msgType:%v", msg.MsgType)
 		}

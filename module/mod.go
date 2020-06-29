@@ -2,6 +2,7 @@ package module
 
 import (
 	"reflect"
+	"sync"
 
 	"github.com/mikeqiao/newworld/log"
 )
@@ -11,7 +12,7 @@ type Mod struct {
 	Name     string
 	Server   *RpcService
 	FuncList map[string]*SFunc
-	CallBack map[string]interface{}
+	closeSig chan bool //模块关闭信号
 }
 
 type SFunc struct {
@@ -24,19 +25,34 @@ func (m *Mod) Init() {
 	m.Server = new(RpcService)
 	m.Server.Init()
 	m.FuncList = make(map[string]*SFunc)
-	m.CallBack = make(map[string]interface{})
-}
-
-func (m *Mod) Start() {
 
 }
 
-func (m *Mod) Run() {
+func (m *Mod) Start(wg *sync.WaitGroup) {
+	go m.Run(wg)
+}
 
+func (m *Mod) Run(wg *sync.WaitGroup) {
+	wg.Add(1)
+	for {
+		select {
+		case <-m.closeSig:
+			m.Server.Close()
+			goto Loop
+		case ri := <-m.Server.ChanCallBack:
+			m.Server.ExecCallBack(ri)
+		case ci := <-m.Server.ChanCall:
+			m.Server.Exec(ci)
+		}
+	}
+Loop:
+
+	//m.working = false
+	wg.Done()
 }
 
 func (m *Mod) Close() {
-
+	m.closeSig <- true
 }
 
 func (m *Mod) Route() {

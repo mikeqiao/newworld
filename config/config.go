@@ -1,7 +1,8 @@
 package config
 
 var Conf struct {
-	Redis RedisConf
+	Redis       RedisConf
+	LenStackBuf uint32
 }
 
 type RedisConf struct {

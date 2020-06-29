@@ -19,7 +19,7 @@ type TcpAgent struct {
 	islogin   bool  //是否登陆验证过
 	isClose   bool  //是否关闭
 	Closed    bool
-	ctype     uint32 //连接类型 1 server  2 client
+	Ctype     uint32 //连接类型 1 server  2 client
 	userData  interface{}
 }
 
@@ -59,7 +59,7 @@ func (a *TcpAgent) Run() {
 			goto Loop
 		}
 		if a.Processor != nil && nil != data {
-			err := a.Processor.Unmarshal(data)
+			err := a.Processor.Unmarshal(a, data)
 			if err != nil {
 				log.Error("unmarshal message error: %v", err)
 			}
@@ -75,4 +75,20 @@ func (a *TcpAgent) Close() {
 	}
 	a.Closed = true
 	a.conn.Close()
+}
+
+func (a *TcpAgent) WriteMsg(u *UserData, msg interface{}) {
+
+	if a.Processor != nil {
+		ud, data, err := a.Processor.Marshal(u, msg)
+		if err != nil {
+			log.Error("marshal message ud:%v error: %v", ud, err)
+			return
+		}
+		err = a.conn.WriteMsg(data...)
+		if err != nil {
+			log.Error("write message ud:%v error: %v", ud, err)
+		}
+	}
+
 }

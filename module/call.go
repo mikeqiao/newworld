@@ -6,8 +6,8 @@ import (
 )
 
 type CallInfo struct {
-	ModId   uint64 //module uid
-	FuncId  string
+	//	ModId   uint64 //module uid
+	//	FuncId  string
 	CF      interface{}   //执行function
 	Cb      interface{}   //callback
 	Args    interface{}   //参数
@@ -16,11 +16,12 @@ type CallInfo struct {
 }
 
 type Return struct {
+	err error
 	ret interface{}
 	cb  interface{}
 }
 
-func (c *CallInfo) SetResult(res interface{}) {
+func (c *CallInfo) SetResult(res interface{}, err error) {
 
 	if c.chanRet == nil || nil == c.Cb {
 		return
@@ -31,8 +32,8 @@ func (c *CallInfo) SetResult(res interface{}) {
 			log.Debug("%v", err)
 		}
 	}()
-	log.Debug("callback 5")
 	r := &Return{
+		err: err,
 		ret: res,
 		cb:  c.Cb,
 	}
