@@ -14,6 +14,7 @@ type RpcService struct {
 	UId          uint64
 	State        uint64 //服务者状态(服务数量)
 	Max          uint32 //服务 最多等待数量
+	Working      bool
 	ChanCall     chan *CallInfo
 	ChanCallBack chan *Return //
 	WCallBack    map[string]*CallInfo
@@ -25,7 +26,14 @@ func (s *RpcService) Init() {
 	s.WCallBack = make(map[string]*CallInfo)
 }
 
+func (s *RpcService) Start() {
+	s.Working = true
+}
+
 func (s *RpcService) Call(f, cb, in interface{}, udata *net.UserData) {
+	if !s.Working {
+		return
+	}
 	ci := &CallInfo{
 		CF:      f,
 		Args:    in,
@@ -106,6 +114,19 @@ func (s *RpcService) ExecCallBack(ri *Return) {
 }
 
 func (s *RpcService) Close() {
+	s.Working = false
+	err := errors.New("Module colsed")
+	for _, v := range s.WCallBack {
+		if nil != v {
+			r := &Return{
+				err: err,
+				ret: nil,
+				cb:  v.Cb,
+			}
+			s.ExecCallBack(r)
+		}
+		return
+	}
 
 }
 

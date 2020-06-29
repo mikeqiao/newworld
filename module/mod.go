@@ -34,6 +34,7 @@ func (m *Mod) Start(wg *sync.WaitGroup) {
 
 func (m *Mod) Run(wg *sync.WaitGroup) {
 	wg.Add(1)
+	m.Server.Start()
 	for {
 		select {
 		case <-m.closeSig:

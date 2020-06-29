@@ -114,7 +114,21 @@ func (p *Processor) Unmarshal(a *net.TcpAgent, data []byte) error {
 func (p *Processor) Marshal(u *net.UserData, in interface{}) (*net.UserData, [][]byte, error) {
 	msg := new(bmsg.CallMsgInfo)
 	msg.MsgType = u.MsgType
-	return nil, nil, nil
+	msg.CallID = u.CallId
+	msg.CallBackID = u.CallBackId
+	msg.UId = u.UId
+	msg.UIdList = u.UIdList[:]
+	data, err := proto.Marshal(in.(proto.Message))
+	if nil != err {
+		log.Error("err:%v", err)
+		return nil, nil, err
+	}
+	msg.Info = data[:]
+	udata, err := proto.Marshal(msg)
+	if nil == err {
+		return u, [][]byte{udata}, err
+	}
+	return nil, nil, err
 }
 
 func (p *Processor) Register(tmod *mod.Mod) {
