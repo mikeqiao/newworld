@@ -9,21 +9,23 @@ import (
 var CreatID = uint64(1)
 
 type TcpAgent struct {
-	LUId      uint64 //本端local uid
-	RUId      uint64 //对方端remote uid
-	conn      Conn
-	Processor Processor
-	lifetime  int64 //链接未验证有效期时间（秒）
-	starttime int64 //链接开始的时间戳
-	tick      int64 //上次心跳的时间戳
-	islogin   bool  //是否登陆验证过
-	isClose   bool  //是否关闭
-	Closed    bool
-	Ctype     uint32 //连接类型 1 server  2 client
-	userData  interface{}
+	LUId         uint64 //本端local uid
+	RUId         uint64 //对方端remote uid
+	conn         Conn
+	Processor    Processor
+	lifetime     int64 //链接未验证有效期时间（秒）
+	starttime    int64 //链接开始的时间戳
+	tick         int64 //上次心跳的时间戳
+	islogin      bool  //是否登陆验证过
+	isClose      bool  //是否关闭
+	Closed       bool
+	Ctype        uint32 //连接类型 1 server  2 client
+	userData     interface{}
+	Mod          interface{} //agent 所属于的mod 的指针
+	CloseChannel chan bool
 }
 
-func (a *TcpAgent) Init(conn *TCPConn, tp Processor, luid, ruid uint64) {
+func (a *TcpAgent) Init(conn *TCPConn, tp Processor, luid, ruid uint64, c chan bool) {
 	if 0 != luid {
 		a.LUId = luid
 	}
@@ -36,6 +38,7 @@ func (a *TcpAgent) Init(conn *TCPConn, tp Processor, luid, ruid uint64) {
 	a.islogin = false
 	a.isClose = false
 	a.Closed = false
+	a.CloseChannel = c
 }
 
 func (a *TcpAgent) SetLocalUID(uid uint64) {
@@ -44,6 +47,10 @@ func (a *TcpAgent) SetLocalUID(uid uint64) {
 
 func (a *TcpAgent) SetRemotUID(uid uint64) {
 	a.RUId = uid
+}
+
+func (a *TcpAgent) SetMod(mod interface{}) {
+	a.Mod = mod
 }
 
 func (a *TcpAgent) Start() {
@@ -74,6 +81,9 @@ func (a *TcpAgent) Close() {
 		return
 	}
 	a.Closed = true
+	if nil != a.CloseChannel {
+		a.CloseChannel <- true
+	}
 	a.conn.Close()
 }
 

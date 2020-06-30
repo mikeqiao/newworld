@@ -1,6 +1,8 @@
 package module
 
 import (
+	"reflect"
+
 	"github.com/mikeqiao/newworld/log"
 	"github.com/mikeqiao/newworld/net"
 )
@@ -8,6 +10,7 @@ import (
 type CallInfo struct {
 	//	ModId   uint64 //module uid
 	//	FuncId  string
+	Out     reflect.Type  //返回数据类型
 	CF      interface{}   //执行function
 	Cb      interface{}   //callback
 	Args    interface{}   //参数

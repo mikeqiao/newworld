@@ -3,6 +3,7 @@ package module
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"runtime"
 
 	conf "github.com/mikeqiao/newworld/config"
@@ -30,11 +31,12 @@ func (s *RpcService) Start() {
 	s.Working = true
 }
 
-func (s *RpcService) Call(f, cb, in interface{}, udata *net.UserData) {
+func (s *RpcService) Call(f, cb, in interface{}, out reflect.Type, udata *net.UserData) {
 	if !s.Working {
 		return
 	}
 	ci := &CallInfo{
+		Out:     out,
 		CF:      f,
 		Args:    in,
 		Data:    udata,
@@ -86,6 +88,17 @@ func (s *RpcService) CallBack(cbid string, in interface{}, err error) {
 	}
 
 	cb.SetResult(in, err)
+
+}
+
+func (s *RpcService) GetCallBack(cbid string) *CallInfo {
+	cb, ok := s.WCallBack[cbid]
+	if ok {
+		delete(s.WCallBack, cbid)
+		return cb
+	}
+
+	return nil
 
 }
 

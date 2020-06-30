@@ -57,7 +57,7 @@ func (p *Processor) Unmarshal(a *net.TcpAgent, data []byte) error {
 							a.WriteMsg(udata, in)
 						}
 
-						v.server.Call(v.f, cb, cmsg, udata)
+						v.server.Call(v.f, cb, cmsg, v.out, udata)
 					} else {
 						log.Error("this service:%v not working", callId)
 					}
@@ -68,23 +68,23 @@ func (p *Processor) Unmarshal(a *net.TcpAgent, data []byte) error {
 				log.Error("no this service:%v", callId)
 			}
 		case common.Msg_Res:
-			//找到callid 赋值调用
-			callId := msg.CallID
-			if v, ok := p.FuncList[callId]; ok && nil != v {
-				cmsg := reflect.New(v.out.Elem()).Interface()
+			v, ok := a.Mod.(*mod.RpcService)
+			if ok && nil != v {
+				cbid := msg.CallBackID
+				cb := v.GetCallBack(cbid)
+				if nil == cb {
+					log.Error("no this callinfo callBackId:%v", cbid)
+					return nil
+				}
+				cmsg := reflect.New(cb.Out.Elem()).Interface()
 				err = proto.Unmarshal(msg.Info, cmsg.(proto.Message))
-				if nil != err {
-					if nil != v.server {
-						cbid := msg.CallBackID
-						v.server.CallBack(cbid, cmsg, err)
-					} else {
-						log.Error("this service:%v not working", callId)
-					}
+				if nil == err {
+					cb.SetResult(cmsg, err)
 				} else {
 					log.Error("Unmarshal call msg err:%v", err)
 				}
 			} else {
-				log.Error("no this service:%v", callId)
+				log.Error("no this service:%v", a)
 			}
 		case common.Msg_Push:
 			//找到callid 赋值调用 不用解析 in
@@ -98,7 +98,7 @@ func (p *Processor) Unmarshal(a *net.TcpAgent, data []byte) error {
 					udata.CallBackId = msg.CallBackID
 					udata.MsgType = msg.MsgType
 					udata.Agent = a
-					v.server.Call(v.f, nil, msg.Info, udata)
+					v.server.Call(v.f, nil, msg.Info, v.out, udata)
 				} else {
 					log.Error("this service:%v not working", callId)
 				}

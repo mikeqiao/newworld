@@ -15,7 +15,7 @@ type TCPServer struct {
 	ln   net.Listener // 监听
 	//agent
 	Processor   Processor
-	CreateAgent func(*TCPConn, Processor, uint64) *TcpAgent // 代理
+	CreateAgent func(*TCPConn, Processor, uint64, chan bool) *TcpAgent // 代理
 }
 
 func (this *TCPServer) init() {
@@ -56,7 +56,7 @@ func (this *TCPServer) run(wg *sync.WaitGroup) {
 		tempDelay = 0
 		//创建了新的链接  创建 agent 加入 conn管理
 		tcpConn := newTCPConn(conn)
-		this.CreateAgent(tcpConn, this.Processor, this.UId)
+		this.CreateAgent(tcpConn, this.Processor, this.UId, nil)
 
 	}
 	wg.Done()
