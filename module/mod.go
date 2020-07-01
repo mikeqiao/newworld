@@ -16,9 +16,11 @@ type Mod struct {
 }
 
 type SFunc struct {
-	In  reflect.Type //请求数据类型
-	Out reflect.Type //返回数据类型
-	F   interface{}  //服务
+	InName  string       //请求数据类型名字
+	OutName string       //返回数据类型名字
+	In      reflect.Type //请求数据类型
+	Out     reflect.Type //返回数据类型
+	F       interface{}  //服务
 }
 
 func (m *Mod) Init() {
@@ -76,6 +78,8 @@ func (m *Mod) Register(fname string, f, req, res interface{}) {
 		sf.F = f
 		sf.In = reflect.TypeOf(req)
 		sf.Out = reflect.TypeOf(res)
+		sf.InName = sf.In.Elem().Name()
+		sf.OutName = sf.Out.Elem().Name()
 		m.FuncList[fname] = sf
 	}
 }

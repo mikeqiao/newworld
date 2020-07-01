@@ -8,8 +8,47 @@ message CallMsgInfo
 {
 	uint32	msgType  =1;  		//消息类型 1 请求服务 2 消息回调 3 推送消息
 	string	callID  =2; 		//请求的服务ID
-	string	CallBackID   =3; 	//回调的事件ID(12个长度的string)
+	string	callBackID   =3; 	//回调的事件ID(12个长度的string)
 	uint64 	uId = 4;     		//发起请求者
 	repeated uint64 uIdList = 5;//推送消息的接收者
 	bytes  Info = 6; 			//消息内容
 }
+
+message ModInfo
+{
+	uint64 mid =1; //模块id
+	string name = 2; //模块名字
+	uint32 state = 3; //模块状态
+}
+
+message ServerTick
+{
+	uint32 time = 1;//时间戳
+	uint32 state =2;//状态
+	repeated ModInfo mInfo = 3;//模块的状态
+}
+
+
+message FuncInfo
+{
+	string name = 1;
+	string In = 2;
+	string Out = 3;
+	
+}
+
+message ServerLogInReq
+{
+	uint64 sid =1; //服务器id
+	string name = 2; //服务器名字
+	repeated FuncInfo flist =3;//服务列表
+}
+
+
+message ServerLogInRes
+{
+	uint64 sid =1; //服务器id
+	string name = 2; //服务器名字
+	repeated FuncInfo flist =3;//服务列表
+}
+

@@ -15,14 +15,22 @@ type MsgHandler func(msg interface{}, data *net.UserData)
 
 type Processor struct {
 	FuncList map[string]*FuncInfo
+	MsgList  map[string]reflect.Type
 }
 
 type FuncInfo struct {
-	fid    string
-	in     reflect.Type    //请求数据类型
-	out    reflect.Type    //返回数据类型
-	f      interface{}     //服务
-	server *mod.RpcService //服务的模块
+	fid     string
+	InName  string          //请求数据类型名字
+	OutName string          //返回数据类型名字
+	in      reflect.Type    //请求数据类型
+	out     reflect.Type    //返回数据类型
+	f       interface{}     //服务
+	server  *mod.RpcService //服务的模块
+}
+
+func (p *Processor) Init() {
+	p.FuncList = make(map[string]*FuncInfo)
+	p.MsgList = make(map[string]reflect.Type)
 }
 
 //解包数据
@@ -143,9 +151,15 @@ func (p *Processor) Register(tmod *mod.Mod) {
 				f.fid = k
 				f.f = v.F
 				f.in = v.In
-				f.in = v.Out
+				f.out = v.Out
+				f.InName = v.InName
+				f.OutName = v.OutName
 				f.server = tmod.Server
 			}
 		}
 	}
+}
+
+func (p *Processor) RegisterMsg(name string, mtype reflect.Type) {
+	p.MsgList[name] = mtype
 }
