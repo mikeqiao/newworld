@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"runtime"
+	"sync"
 
 	conf "github.com/mikeqiao/newworld/config"
 	"github.com/mikeqiao/newworld/log"
@@ -19,6 +20,7 @@ type RpcService struct {
 	ChanCall     chan *CallInfo
 	ChanCallBack chan *Return //
 	WCallBack    map[string]*CallInfo
+	mutex        sync.RWMutex
 }
 
 func (s *RpcService) Init() {
@@ -82,6 +84,8 @@ func (s *RpcService) Exec(ci *CallInfo) {
 }
 
 func (s *RpcService) CallBack(cbid string, in interface{}, err error) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	cb, ok := s.WCallBack[cbid]
 	if ok {
 		delete(s.WCallBack, cbid)
@@ -92,6 +96,8 @@ func (s *RpcService) CallBack(cbid string, in interface{}, err error) {
 }
 
 func (s *RpcService) GetCallBack(cbid string) *CallInfo {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	cb, ok := s.WCallBack[cbid]
 	if ok {
 		delete(s.WCallBack, cbid)
@@ -129,6 +135,8 @@ func (s *RpcService) ExecCallBack(ri *Return) {
 func (s *RpcService) Close() {
 	s.Working = false
 	err := errors.New("Module colsed")
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	for _, v := range s.WCallBack {
 		if nil != v {
 			r := &Return{
@@ -138,7 +146,6 @@ func (s *RpcService) Close() {
 			}
 			s.ExecCallBack(r)
 		}
-		return
 	}
 
 }
@@ -156,6 +163,14 @@ func (s *RpcService) ret(ci *CallInfo, ri *Return) {
 
 	ri.cb = ci.Cb
 	s.ChanCallBack <- ri
+}
+
+func (s *RpcService) AddWaitCallBack(c *CallInfo) string {
+	key := fmt.Sprintf("%p", c)
+	s.mutex.Lock()
+	s.mutex.Unlock()
+	s.WCallBack[key] = c
+	return key
 }
 
 //msg->route->mod->find func->callinfo ->add to server chan

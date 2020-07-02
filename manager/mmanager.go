@@ -18,8 +18,11 @@ type MManager struct {
 	wg       *sync.WaitGroup
 }
 
-func NewMod(name string) *mod.Mod {
-	mid := ModManager.GetNewID()
+func NewMod(uid uint64, name string) *mod.Mod {
+	mid := uid
+	if 0 == mid {
+		mid = ModManager.GetNewID()
+	}
 	m := new(mod.Mod)
 	m.Uid = mid
 	m.Name = name

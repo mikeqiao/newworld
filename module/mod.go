@@ -16,6 +16,7 @@ type Mod struct {
 }
 
 type SFunc struct {
+	Ftyp    uint32       // 1 本地服务  2 远程服务
 	InName  string       //请求数据类型名字
 	OutName string       //返回数据类型名字
 	In      reflect.Type //请求数据类型
@@ -80,6 +81,23 @@ func (m *Mod) Register(fname string, f, req, res interface{}) {
 		sf.Out = reflect.TypeOf(res)
 		sf.InName = sf.In.Elem().Name()
 		sf.OutName = sf.Out.Elem().Name()
+		sf.Ftyp = 1
+		m.FuncList[fname] = sf
+	}
+}
+
+func (m *Mod) RegisterRemote(fname, req, res string, f interface{}) {
+	if _, ok := m.FuncList[fname]; ok {
+		log.Error("func already registed, name:%v", fname)
+		return
+	}
+
+	if nil != f {
+		sf := new(SFunc)
+		sf.F = f
+		sf.InName = req
+		sf.OutName = res
+		sf.Ftyp = 2
 		m.FuncList[fname] = sf
 	}
 }

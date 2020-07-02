@@ -14,12 +14,19 @@ import (
 type MsgHandler func(msg interface{}, data *net.UserData)
 
 type Processor struct {
-	FuncList map[string]*FuncInfo
-	MsgList  map[string]reflect.Type
+	FuncList   map[string]*FuncInfo
+	MsgList    map[string]reflect.Type
+	HandleList map[string]*HandleInfo
+}
+
+type HandleInfo struct {
+	handle MsgHandler
+	in     reflect.Type //请求数据类型
 }
 
 type FuncInfo struct {
-	fid     string
+	ftype   uint32          //1 本地服务 2 远程注册来的服务
+	fid     string          //服务名称
 	InName  string          //请求数据类型名字
 	OutName string          //返回数据类型名字
 	in      reflect.Type    //请求数据类型
@@ -31,6 +38,18 @@ type FuncInfo struct {
 func (p *Processor) Init() {
 	p.FuncList = make(map[string]*FuncInfo)
 	p.MsgList = make(map[string]reflect.Type)
+	p.HandleList = make(map[string]*HandleInfo)
+}
+
+func (p *Processor) SetHandler(fid string, in interface{}, msgHandler MsgHandler) {
+	if _, ok := p.HandleList[fid]; ok {
+		log.Error("function %s already registered", fid)
+	} else {
+		info := new(HandleInfo)
+		info.handle = msgHandler
+		info.in = reflect.TypeOf(in)
+		p.HandleList[fid] = info
+	}
 }
 
 //解包数据
@@ -111,6 +130,21 @@ func (p *Processor) Unmarshal(a *net.TcpAgent, data []byte) error {
 					log.Error("this service:%v not working", callId)
 				}
 			}
+		case common.Msg_Handle:
+			callId := msg.CallID
+			if v, ok := p.HandleList[callId]; ok && nil != v {
+				cmsg := reflect.New(v.in.Elem()).Interface()
+				if nil != v.handle {
+					udata := new(net.UserData)
+					udata.UId = msg.UId
+					udata.UIdList = msg.UIdList[:]
+					udata.CallId = msg.CallID
+					udata.CallBackId = msg.CallBackID
+					udata.MsgType = msg.MsgType
+					udata.Agent = a
+					v.handle(cmsg, udata)
+				}
+			}
 		default:
 			log.Error("err msgType:%v", msg.MsgType)
 		}
@@ -155,6 +189,19 @@ func (p *Processor) Register(tmod *mod.Mod) {
 				f.InName = v.InName
 				f.OutName = v.OutName
 				f.server = tmod.Server
+				f.ftype = v.Ftyp
+				if 2 == f.ftype {
+					if ttype, ok := p.MsgList[f.InName]; ok {
+						f.in = ttype
+					} else {
+						log.Error("no this name msg:%v", f.InName)
+					}
+					if ttype, ok := p.MsgList[f.OutName]; ok {
+						f.out = ttype
+					} else {
+						log.Error("no this name msg:%v", f.OutName)
+					}
+				}
 			}
 		}
 	}
@@ -162,4 +209,30 @@ func (p *Processor) Register(tmod *mod.Mod) {
 
 func (p *Processor) RegisterMsg(name string, mtype reflect.Type) {
 	p.MsgList[name] = mtype
+}
+
+func (p *Processor) Route(funcName string, cb, in interface{}, udata *net.UserData) {
+	if v, ok := p.FuncList[funcName]; ok && nil != v {
+
+		v.server.Call(v.f, cb, in, v.out, udata)
+	}
+}
+
+func (p *Processor) Handle(funcName string, in interface{}, udata *net.UserData) {
+	if v, ok := p.HandleList[funcName]; ok && nil != v {
+		v.handle(in, udata)
+	}
+}
+
+func (p *Processor) GetLocalFunc() (flist []*bmsg.FuncInfo) {
+	for _, v := range p.FuncList {
+		if 1 == v.ftype {
+			nf := new(bmsg.FuncInfo)
+			nf.Name = v.fid
+			nf.In = v.InName
+			nf.Out = v.OutName
+			flist = append(flist, nf)
+		}
+	}
+	return
 }

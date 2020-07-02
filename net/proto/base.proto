@@ -21,6 +21,11 @@ message ModInfo
 	uint32 state = 3; //模块状态
 }
 
+message ServerConnect
+{
+	uint64 uid = 1;
+}
+
 message ServerTick
 {
 	uint32 time = 1;//时间戳
@@ -34,6 +39,7 @@ message FuncInfo
 	string name = 1;
 	string In = 2;
 	string Out = 3;
+	uint32 msgType = 4;
 	
 }
 

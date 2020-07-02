@@ -5,4 +5,5 @@ const (
 	Msg_Req
 	Msg_Res
 	Msg_Push
+	Msg_Handle
 )

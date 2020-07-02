@@ -5,6 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/mikeqiao/newworld/net/proto"
+
 	"github.com/mikeqiao/newworld/log"
 )
 
@@ -62,6 +64,10 @@ func (this *TCPClient) connect() {
 	agent := this.CreateAgent(tcpConn, this.Processor, this.UId, this.CloseChannel)
 	this.Agent = agent
 	agent.SetLocalUID(this.UId)
+	//通知上层，连接成功，开始登录流程
+	tmsg := new(proto.ServerConnect)
+	tmsg.Uid = this.UId
+	this.Processor.Handle("ServerConnectOK", tmsg, &UserData{UId: this.UId, Agent: this.Agent})
 }
 
 func (this *TCPClient) Start() {

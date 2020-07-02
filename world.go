@@ -1,7 +1,16 @@
 package newworld
 
+import (
+	"github.com/mikeqiao/newworld/base"
+	"github.com/mikeqiao/newworld/config"
+	"github.com/mikeqiao/newworld/manager"
+)
+
 //初始化服务
 func Init() {
+	config.Init()
+	manager.Init()
+	base.Init()
 
 }
 
