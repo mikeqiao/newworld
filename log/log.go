@@ -8,6 +8,8 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	conf "github.com/mikeqiao/newworld/config"
 )
 
 const (
@@ -15,6 +17,7 @@ const (
 	releaseLevel = 1
 	errorLevel   = 2
 	fatalLevel   = 3
+	MaxLevel     = 5
 )
 
 const (
@@ -52,13 +55,10 @@ func New(strLevel string, pathname, logname string, flag int) (*Logger, error) {
 	if pathname != "" {
 		now := time.Now()
 
-		filename := fmt.Sprintf("%d%02d%02d_%02d_%02d_%02d_%v.log",
+		filename := fmt.Sprintf("%d%02d%02d_%v.log",
 			now.Year(),
 			now.Month(),
 			now.Day(),
-			now.Hour(),
-			now.Minute(),
-			now.Second(),
 			logname)
 
 		file, err := os.OpenFile(path.Join(pathname, filename), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
@@ -150,4 +150,14 @@ func Fatal(format string, a ...interface{}) {
 
 func Close() {
 	gLogger.Close()
+}
+
+func Init() {
+
+	logger, err := New(conf.Conf.LogLevel, conf.Conf.LogPath, conf.Conf.SInfo.Name, int(conf.Conf.LogFlag))
+	if err != nil {
+		panic(err)
+	}
+	Export(logger)
+
 }

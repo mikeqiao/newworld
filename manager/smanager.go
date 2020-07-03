@@ -53,11 +53,15 @@ func (n *NetServerManager) CloseNetServer(uid uint64) {
 
 func (n *NetServerManager) Close() {
 	n.mutex.Lock()
-	defer n.mutex.Unlock()
 	for _, v := range n.SList {
 		if nil != v {
 			v.Close()
 		}
 	}
+	n.mutex.Unlock()
 	n.wg.Wait()
+}
+
+func (n *NetServerManager) Run() {
+
 }

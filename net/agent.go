@@ -1,9 +1,12 @@
 package net
 
 import (
+	"sync"
 	"time"
 
+	"github.com/mikeqiao/newworld/common"
 	"github.com/mikeqiao/newworld/log"
+	"github.com/mikeqiao/newworld/net/proto"
 )
 
 var CreatID = uint64(1)
@@ -49,12 +52,20 @@ func (a *TcpAgent) SetRemotUID(uid uint64) {
 	a.RUId = uid
 }
 
+func (a *TcpAgent) SetTick(time int64) {
+	a.tick = time
+}
+
 func (a *TcpAgent) SetMod(mod interface{}) {
 	a.Mod = mod
 }
 
-func (a *TcpAgent) Start() {
+func (a *TcpAgent) SetLogin() {
+	a.islogin = true
+}
 
+func (a *TcpAgent) Start(wg *sync.WaitGroup) {
+	go a.Update(wg)
 }
 
 func (a *TcpAgent) Run() {
@@ -73,6 +84,51 @@ func (a *TcpAgent) Run() {
 		}
 	}
 Loop:
+	a.Close()
+}
+
+func (a *TcpAgent) Update(wg *sync.WaitGroup) {
+	wg.Add(1)
+	t1 := time.NewTimer(time.Second * 1)
+	t2 := time.NewTimer(time.Second * 10)
+	for {
+		select {
+		case <-t1.C:
+			if a.isClose == true {
+				log.Debug("agent closed")
+				goto Loop
+			}
+
+			if a.islogin != true {
+				nowtime := time.Now().Unix()
+				if (a.starttime + a.lifetime) < nowtime {
+					log.Debug("outtime to not login: %v", a.conn.RemoteAddr())
+					goto Loop
+				}
+			} else {
+				nowtime := time.Now().Unix()
+				if (a.tick + a.lifetime*3) < nowtime {
+					log.Debug("outtime to no tick: %v", a.conn.RemoteAddr())
+					goto Loop
+				}
+			}
+			t1.Reset(time.Second * 1)
+
+		case <-t2.C:
+			if a.Ctype == 1 {
+				u := new(UserData)
+				u.MsgType = common.Msg_Handle
+				u.CallId = "ServerTick"
+				nowtime := time.Now().Unix()
+				a.WriteMsg(u, &proto.ServerTick{
+					Time: uint32(nowtime),
+				})
+			}
+			t2.Reset(time.Second * 10)
+		}
+	}
+Loop:
+	wg.Done()
 	a.Close()
 }
 
@@ -101,4 +157,8 @@ func (a *TcpAgent) WriteMsg(u *UserData, msg interface{}) {
 		}
 	}
 
+}
+
+func (a *TcpAgent) IsClose() bool {
+	return a.Closed
 }

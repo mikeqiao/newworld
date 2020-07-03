@@ -54,3 +54,16 @@ func (n *NetClientManager) Run() {
 		}
 	}
 }
+
+func (n *NetClientManager) Close() {
+	n.mutex.Lock()
+	for k, v := range n.CList {
+		if nil != v {
+			v.Close()
+		} else {
+			log.Error("this Client  is nil:%v", k)
+		}
+	}
+	n.mutex.Unlock()
+	n.wg.Wait()
+}

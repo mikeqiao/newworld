@@ -1,6 +1,8 @@
 package manager
 
 import (
+	"time"
+
 	"github.com/mikeqiao/newworld/common"
 	"github.com/mikeqiao/newworld/config"
 	"github.com/mikeqiao/newworld/log"
@@ -35,7 +37,22 @@ func HandleServerTick(msg interface{}, data *net.UserData) {
 	//	m := msg.(*proto.ServerTick)
 	// 消息的发送者
 	if nil != data && nil != data.Agent {
-		//		data.Agent.SetTick(time.Now().Unix())
+		data.Agent.SetTick(time.Now().Unix())
+		u := new(net.UserData)
+		u.MsgType = common.Msg_Handle
+		u.CallId = "ServerTickBack"
+		nowtime := time.Now().Unix()
+		data.Agent.WriteMsg(u, &proto.ServerTick{
+			Time: uint32(nowtime),
+		})
+	}
+}
+
+func HandleServerTickBack(msg interface{}, data *net.UserData) {
+	//	m := msg.(*proto.ServerTick)
+	// 消息的发送者
+	if nil != data && nil != data.Agent {
+		data.Agent.SetTick(time.Now().Unix())
 	}
 }
 
@@ -59,6 +76,8 @@ func HandleServerLoginRQ(msg interface{}, data *net.UserData) {
 		ModManager.RemoveMod(uid)
 	}
 	agent := data.Agent
+	agent.SetRemotUID(uid)
+	agent.SetLogin()
 	module = NewMod(uid, name)
 	for _, v := range m.GetFlist() {
 		if nil != v {
@@ -72,9 +91,11 @@ func HandleServerLoginRQ(msg interface{}, data *net.UserData) {
 					u := new(net.UserData)
 					u.CallId = v.Name
 					u.CallBackId = key
-					u.MsgType = v.MsgType
+					u.MsgType = common.Msg_Req
 					if nil != c.Data {
-
+						if 0 != c.Data.MsgType {
+							u.MsgType = c.Data.MsgType
+						}
 						u.UId = c.Data.UId
 						u.UIdList = c.Data.UIdList
 					}
@@ -115,6 +136,8 @@ func HandleServerLoginRS(msg interface{}, data *net.UserData) {
 		ModManager.RemoveMod(uid)
 	}
 	agent := data.Agent
+	agent.SetRemotUID(uid)
+	agent.SetLogin()
 	module = NewMod(uid, name)
 	for _, v := range m.GetFlist() {
 		if nil != v {
@@ -128,9 +151,11 @@ func HandleServerLoginRS(msg interface{}, data *net.UserData) {
 					u := new(net.UserData)
 					u.CallId = v.Name
 					u.CallBackId = key
-					u.MsgType = v.MsgType
+					u.MsgType = common.Msg_Req
 					if nil != c.Data {
-
+						if 0 != c.Data.MsgType {
+							u.MsgType = c.Data.MsgType
+						}
 						u.UId = c.Data.UId
 						u.UIdList = c.Data.UIdList
 					}

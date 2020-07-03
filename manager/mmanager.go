@@ -96,7 +96,7 @@ func (m *MManager) Run() {
 
 func (m *MManager) Close() {
 	m.mutex.Lock()
-	defer m.mutex.Unlock()
+
 	for k, v := range m.modList {
 		if nil != v {
 			v.Close()
@@ -104,4 +104,6 @@ func (m *MManager) Close() {
 			log.Error("this mod  is nil:%v", k)
 		}
 	}
+	m.mutex.Unlock()
+	m.wg.Wait()
 }

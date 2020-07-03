@@ -10,6 +10,9 @@ var Conf struct {
 	Redis       RedisConf
 	SInfo       ServerInfo
 	LenStackBuf uint32
+	LogFlag     uint32
+	LogLevel    string
+	LogPath     string
 }
 
 type RedisConf struct {
