@@ -2,6 +2,7 @@ package processor
 
 import (
 	"reflect"
+	"sync"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/mikeqiao/newworld/common"
@@ -17,6 +18,7 @@ type Processor struct {
 	FuncList   map[string]*FuncInfo
 	MsgList    map[string]reflect.Type
 	HandleList map[string]*HandleInfo
+	mutex      sync.RWMutex
 }
 
 type HandleInfo struct {
@@ -64,6 +66,8 @@ func (p *Processor) Unmarshal(a *net.TcpAgent, data []byte) error {
 		case common.Msg_Req:
 			//找到callid 赋值调用
 			callId := msg.CallID
+			p.mutex.RLock()
+			defer p.mutex.RUnlock()
 			if v, ok := p.FuncList[callId]; ok && nil != v {
 				cmsg := reflect.New(v.in.Elem()).Interface()
 				err = proto.Unmarshal(msg.Info, cmsg.(proto.Message))
@@ -116,6 +120,8 @@ func (p *Processor) Unmarshal(a *net.TcpAgent, data []byte) error {
 		case common.Msg_Push:
 			//找到callid 赋值调用 不用解析 in
 			callId := msg.CallID
+			p.mutex.RLock()
+			defer p.mutex.RUnlock()
 			if v, ok := p.FuncList[callId]; ok && nil != v {
 				if nil != v.server {
 					udata := new(net.UserData)
@@ -179,6 +185,7 @@ func (p *Processor) Register(tmod *mod.Mod) {
 	}
 	flist := tmod.GetAllFunc()
 	if nil != flist {
+		p.mutex.Lock()
 		for k, v := range flist {
 			if nil != v {
 				f := new(FuncInfo)
@@ -202,8 +209,12 @@ func (p *Processor) Register(tmod *mod.Mod) {
 						log.Error("no this name msg:%v", f.OutName)
 					}
 				}
+
+				p.FuncList[f.fid] = f
+
 			}
 		}
+		p.mutex.Unlock()
 	}
 }
 
