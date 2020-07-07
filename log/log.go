@@ -1,11 +1,14 @@
 package log
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"log"
 	"os"
 	"path"
+	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -100,7 +103,20 @@ func (logger *Logger) doPrintf(level int, printLevel string, format string, a ..
 	}
 
 	format = printLevel + format
-	logger.baseLogger.Output(3, fmt.Sprintf(format, a...))
+
+	t := time.Now().String()
+	var buffer bytes.Buffer
+	buffer.WriteString(t[:26])
+	_, file, line, ok := runtime.Caller(2)
+	if ok {
+		buffer.WriteString(" ")
+		buffer.WriteString(file)
+		buffer.WriteString("	line:")
+		buffer.WriteString(strconv.Itoa(line))
+		buffer.WriteString(":")
+	}
+
+	logger.baseLogger.Output(3, buffer.String()+fmt.Sprintf(format, a...))
 
 	if level == fatalLevel {
 		os.Exit(1)
