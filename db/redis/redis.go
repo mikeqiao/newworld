@@ -16,7 +16,7 @@ type CRedis struct {
 	Life uint32
 }
 
-func init() {
+func Init() {
 	R = new(CRedis)
 	R.InitDB()
 }

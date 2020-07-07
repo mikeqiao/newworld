@@ -3,6 +3,8 @@ package manager
 import (
 	"sync"
 
+	"github.com/mikeqiao/newworld/db/redis"
+
 	p "github.com/mikeqiao/newworld/net/processor/protobuff"
 	"github.com/mikeqiao/newworld/net/proto"
 )
@@ -23,6 +25,7 @@ func Init() {
 	ServerManager.Init()
 	ClientManager = new(NetClientManager)
 	ClientManager.Init()
+	redis.Init()
 	Register()
 }
 
@@ -47,5 +50,6 @@ func Close() {
 	ClientManager.Close()
 	ModManager.Close()
 	ConnManager.Close()
+	redis.R.OnClose()
 	wg.Wait()
 }

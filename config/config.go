@@ -7,12 +7,13 @@ import (
 )
 
 var Conf struct {
-	Redis       RedisConf
-	SInfo       ServerInfo
 	LenStackBuf uint32
 	LogFlag     uint32
 	LogLevel    string
 	LogPath     string
+	Redis       RedisConf
+	SInfo       ServerInfo
+	Servers     []NetServer
 }
 
 type RedisConf struct {
@@ -26,6 +27,12 @@ type RedisConf struct {
 type ServerInfo struct {
 	Uid  uint64
 	Name string
+}
+
+type NetServer struct {
+	Uid        uint64
+	Name       string
+	ListenAddr string
 }
 
 func Init() {
