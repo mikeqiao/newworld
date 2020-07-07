@@ -24,13 +24,17 @@ func (u *UpdateMod) Update() {
 	u.mutex.Lock()
 	defer u.mutex.Unlock()
 	if u.do {
-		redis.R.Hash_SetDataMap(u.table, u.update)
+		if len(u.update) > 0 {
+			redis.R.Hash_SetDataMap(u.table, u.update)
 
-		u.update = make(map[string]interface{})
+			u.update = make(map[string]interface{})
+		}
+		if len(u.del) > 0 {
 
-		redis.R.Hash_DelDataMap(u.table, u.del)
-		u.do = false
-		u.del = make(map[string]interface{})
+			redis.R.Hash_DelDataMap(u.table, u.del)
+			u.do = false
+			u.del = make(map[string]interface{})
+		}
 	}
 }
 
