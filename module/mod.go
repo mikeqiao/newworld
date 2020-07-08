@@ -14,6 +14,7 @@ type Mod struct {
 	FuncList map[string]*SFunc
 	closeSig chan bool //模块关闭信号
 	Closed   bool
+	Working  bool
 }
 
 type SFunc struct {
