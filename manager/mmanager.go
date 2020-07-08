@@ -36,6 +36,14 @@ func (m *MManager) Init() {
 	m.createid = 0
 }
 
+func (m *MManager) AddGroup(count int) {
+	m.wg.Add(count)
+}
+
+func (m *MManager) Done() {
+	m.wg.Done()
+}
+
 func (m *MManager) GetNewID() uint64 {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
