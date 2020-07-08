@@ -59,10 +59,6 @@ func (m *Mod) Close() {
 	m.closeSig <- true
 }
 
-func (m *Mod) Route() {
-
-}
-
 func (m *Mod) GetAllFunc() map[string]*SFunc {
 	return m.FuncList
 
