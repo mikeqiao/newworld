@@ -50,3 +50,14 @@ func (r *CRedis) Hash_DelDataMap(table string, data map[string]interface{}) erro
 	c.Close()
 	return err
 }
+
+func (r *CRedis) Hash_GetData(table string, key interface{}) (string, error) {
+	c := r.Pool.Get()
+	value, err := redis.String(c.Do("hget", table, key))
+	if nil != err {
+		log.Error("table:%v, error:%v", table, err)
+	}
+
+	c.Close()
+	return value, err
+}
