@@ -2,11 +2,12 @@ package redis
 
 import (
 	"fmt"
-	"log"
+
 	"time"
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/mikeqiao/newworld/config"
+	"github.com/mikeqiao/newworld/log"
 )
 
 var R *CRedis
@@ -46,13 +47,13 @@ func Newfactory(name string) *redis.Pool {
 				redis.DialPassword(password),
 			)
 			if err != nil {
-				log.Panicf("err:%v", err)
+				log.Fatal("err:%v", err)
 				return nil, err
 			}
 
 			return c, nil
 		},
 	}
-	log.Println("connnect redis success")
+	log.Debug("connnect redis success")
 	return pool
 }
