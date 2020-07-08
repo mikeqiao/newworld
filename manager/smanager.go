@@ -3,6 +3,7 @@ package manager
 import (
 	"sync"
 
+	conf "github.com/mikeqiao/newworld/config"
 	"github.com/mikeqiao/newworld/log"
 	"github.com/mikeqiao/newworld/net"
 )
@@ -63,5 +64,7 @@ func (n *NetServerManager) Close() {
 }
 
 func (n *NetServerManager) Run() {
-
+	for _, v := range conf.Conf.Servers {
+		n.NewNetServer(v.Uid, v.Name, v.ListenAddr)
+	}
 }
