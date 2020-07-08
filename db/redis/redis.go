@@ -47,7 +47,7 @@ func Newfactory(name string) *redis.Pool {
 				redis.DialPassword(password),
 			)
 			if err != nil {
-				log.Fatal("err:%v", err)
+				log.Fatal("err:%v, pw:%v, addr:%v", err, password, address)
 				return nil, err
 			}
 
