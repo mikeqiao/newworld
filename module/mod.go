@@ -13,6 +13,7 @@ type Mod struct {
 	Server   *RpcService
 	FuncList map[string]*SFunc
 	closeSig chan bool //模块关闭信号
+	Closed   bool
 }
 
 type SFunc struct {
@@ -50,7 +51,7 @@ func (m *Mod) Run(wg *sync.WaitGroup) {
 		}
 	}
 Loop:
-
+	m.Closed = true
 	//m.working = false
 	wg.Done()
 }
