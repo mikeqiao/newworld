@@ -40,19 +40,22 @@ func (n *NetClientManager) NewClient(uid uint64, name, addr string) {
 	newClient.Processor = DefaultProcessor
 	newClient.CreateAgent = CreateAgent
 	newClient.Start()
+	go newClient.Run(n.wg)
 	n.CList[uid] = newClient
 }
 
 func (n *NetClientManager) Run() {
-	n.mutex.Lock()
-	defer n.mutex.Unlock()
-	for k, v := range n.CList {
-		if nil != v {
-			go v.Run(n.wg)
-		} else {
-			log.Error("this Client  is nil:%v", k)
+	/*
+		n.mutex.Lock()
+		defer n.mutex.Unlock()
+		for k, v := range n.CList {
+			if nil != v {
+				go v.Run(n.wg)
+			} else {
+				log.Error("this Client  is nil:%v", k)
+			}
 		}
-	}
+	*/
 }
 
 func (n *NetClientManager) Close() {

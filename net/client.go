@@ -17,6 +17,7 @@ type TCPClient struct {
 	ConnectInterval time.Duration                                          // 请求链接的间隔
 	CreateAgent     func(*TCPConn, Processor, uint64, chan bool) *TcpAgent // 代理
 	Closed          bool                                                   // 关闭标识符
+	Working         bool
 	Processor       Processor
 	CloseChannel    chan bool
 	//msg parser
@@ -87,9 +88,13 @@ func (this *TCPClient) Close() {
 }
 
 func (this *TCPClient) Run(wg *sync.WaitGroup) {
+	if this.Working {
+		return
+	}
 	wg.Add(1)
 	defer wg.Done()
 	for {
+		this.Working = true
 		select {
 		case <-this.CloseChannel:
 			if this.Closed {
