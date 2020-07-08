@@ -61,3 +61,13 @@ func (r *CRedis) Hash_GetData(table string, key interface{}) (string, error) {
 	c.Close()
 	return value, err
 }
+
+func (r *CRedis) Hash_SetData(table string, name, value interface{}) error {
+	c := r.Pool.Get()
+	_, err := c.Do("hset", table, name, value)
+	if nil != err {
+		log.Error("error table:%v, name:%v", table, name)
+	}
+	c.Close()
+	return err
+}

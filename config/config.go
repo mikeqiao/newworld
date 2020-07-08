@@ -45,3 +45,12 @@ func Init() {
 		log.Fatal("%v", err)
 	}
 }
+
+func GetServerByName(name string) *NetServer {
+	for _, v := range Conf.Servers {
+		if name == v.Name {
+			return &v
+		}
+	}
+	return nil
+}
