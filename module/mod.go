@@ -30,6 +30,7 @@ func (m *Mod) Init() {
 	m.Server = new(RpcService)
 	m.Server.Init()
 	m.FuncList = make(map[string]*SFunc)
+	m.closeSig = make(chan bool, 1)
 
 }
 

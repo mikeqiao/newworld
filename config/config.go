@@ -31,6 +31,7 @@ type ServerInfo struct {
 
 type NetServer struct {
 	Uid        uint64
+	CType      uint32
 	Name       string
 	ListenAddr string
 }

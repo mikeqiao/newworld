@@ -13,9 +13,9 @@ var DefaultProcessor *p.Processor
 var ConnManager *NetConnManager
 var CreatID uint64
 
-func CreateAgent(conn *net.TCPConn, tp net.Processor, uid uint64, c chan bool) *net.TcpAgent {
+func CreateAgent(conn *net.TCPConn, tp net.Processor, uid uint64, ctype uint32, c chan bool) *net.TcpAgent {
 	a := new(net.TcpAgent)
-
+	a.Ctype = ctype
 	CreatID += 1
 	a.Init(conn, tp, uid, CreatID, c)
 	ConnManager.AddAgent(a)

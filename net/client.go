@@ -14,9 +14,9 @@ type TCPClient struct {
 	UId             uint64
 	Addr            string // 地址
 	Name            string
-	ConnectInterval time.Duration                                          // 请求链接的间隔
-	CreateAgent     func(*TCPConn, Processor, uint64, chan bool) *TcpAgent // 代理
-	Closed          bool                                                   // 关闭标识符
+	ConnectInterval time.Duration                                                  // 请求链接的间隔
+	CreateAgent     func(*TCPConn, Processor, uint64, uint32, chan bool) *TcpAgent // 代理
+	Closed          bool                                                           // 关闭标识符
 	Working         bool
 	Processor       Processor
 	CloseChannel    chan bool
@@ -62,7 +62,7 @@ func (this *TCPClient) connect() {
 		return
 	}
 	tcpConn := newTCPConn(conn)
-	agent := this.CreateAgent(tcpConn, this.Processor, this.UId, this.CloseChannel)
+	agent := this.CreateAgent(tcpConn, this.Processor, this.UId, 1, this.CloseChannel)
 	this.Agent = agent
 	agent.SetLocalUID(this.UId)
 	log.Debug("client connect ok:%v", this.Addr)

@@ -42,6 +42,7 @@ func (a *TcpAgent) Init(conn *TCPConn, tp Processor, luid, ruid uint64, c chan b
 	a.isClose = false
 	a.Closed = false
 	a.CloseChannel = c
+	a.Ctype = 1
 }
 
 func (a *TcpAgent) SetLocalUID(uid uint64) {

@@ -34,14 +34,16 @@ func HandleServerDelConnect(msg interface{}, data *net.UserData) {
 }
 
 func HandleServerTick(msg interface{}, data *net.UserData) {
-	//	m := msg.(*proto.ServerTick)
+	m := msg.(*proto.ServerTick)
 	// 消息的发送者
 	if nil != data && nil != data.Agent {
+		log.Debug("server:%v, tick:%v", data.Agent.RUId, m.GetTime())
 		data.Agent.SetTick(time.Now().Unix())
 		u := new(net.UserData)
 		u.MsgType = common.Msg_Handle
 		u.CallId = "ServerTickBack"
 		nowtime := time.Now().Unix()
+
 		data.Agent.WriteMsg(u, &proto.ServerTick{
 			Time: uint32(nowtime),
 		})
@@ -49,9 +51,10 @@ func HandleServerTick(msg interface{}, data *net.UserData) {
 }
 
 func HandleServerTickBack(msg interface{}, data *net.UserData) {
-	//	m := msg.(*proto.ServerTick)
+	m := msg.(*proto.ServerTick)
 	// 消息的发送者
 	if nil != data && nil != data.Agent {
+		log.Debug("server:%v, tickBack:%v", data.Agent.RUId, m.GetTime())
 		data.Agent.SetTick(time.Now().Unix())
 	}
 }
