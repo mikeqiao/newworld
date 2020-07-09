@@ -65,8 +65,8 @@ func HandleServerLoginRQ(msg interface{}, data *net.UserData) {
 		return
 	}
 	s := m.GetFlist()
-	if nil == s {
-		log.Debug(" wrong serverinfo msg: %v", m)
+	if 0 == len(s) {
+		log.Debug(" wrong server func info msg: %v", m)
 		return
 	}
 	uid := m.GetSid()
