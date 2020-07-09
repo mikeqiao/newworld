@@ -128,7 +128,12 @@ func HandleServerLoginRS(msg interface{}, data *net.UserData) {
 		log.Debug(" wrong agent ,msg: %v", msg)
 		return
 	}
-
+	s := m.GetFlist()
+	if 0 == len(s) {
+		log.Debug(" wrong server func info msg: %+v", m)
+		return
+	}
+	log.Debug(" HandleServerLoginRS info msg: %+v", m)
 	uid := m.GetSid()
 	name := m.GetName()
 	module := ModManager.GetMod(uid)
