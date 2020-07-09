@@ -104,6 +104,15 @@ func (m *MManager) Run() {
 	}
 }
 
+func (m *MManager) StartMod(mod *mod.Mod) {
+
+	if nil != mod {
+		mod.Start(m.wg)
+	} else {
+		log.Error("this mod  is nil")
+	}
+}
+
 func (m *MManager) Close() {
 	m.mutex.Lock()
 
