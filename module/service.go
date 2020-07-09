@@ -168,8 +168,8 @@ func (s *RpcService) ret(ci *CallInfo, ri *Return) {
 func (s *RpcService) AddWaitCallBack(c *CallInfo) string {
 	key := fmt.Sprintf("%p", c)
 	s.mutex.Lock()
-	s.mutex.Unlock()
 	s.WCallBack[key] = c
+	s.mutex.Unlock()
 	return key
 }
 

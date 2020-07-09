@@ -53,14 +53,14 @@ func (m *MManager) GetNewID() uint64 {
 }
 
 func (m *MManager) Registe(mod *mod.Mod) error {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-	if nil == m {
+
+	if nil == mod {
 		log.Error("This mod is nil")
 		return errors.New("This mod is nil")
 	}
-
+	m.mutex.Lock()
 	m.modList[mod.Uid] = mod
+	m.mutex.Unlock()
 	if nil != DefaultProcessor {
 		DefaultProcessor.Register(mod)
 		log.Debug("register mod:%v", mod.Name)

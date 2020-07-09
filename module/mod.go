@@ -60,6 +60,7 @@ Loop:
 }
 
 func (m *Mod) Close() {
+	log.Debug("mod:%v, do close", m.Name)
 	m.closeSig <- true
 	log.Debug("mod:%v, close", m.Name)
 }

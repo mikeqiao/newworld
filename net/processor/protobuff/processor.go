@@ -67,8 +67,9 @@ func (p *Processor) Unmarshal(a *net.TcpAgent, data []byte) error {
 			//找到callid 赋值调用
 			callId := msg.CallID
 			p.mutex.RLock()
-			defer p.mutex.RUnlock()
-			if v, ok := p.FuncList[callId]; ok && nil != v {
+			v, ok := p.FuncList[callId]
+			p.mutex.RUnlock()
+			if ok && nil != v {
 				cmsg := reflect.New(v.in.Elem()).Interface()
 				err = proto.Unmarshal(msg.Info, cmsg.(proto.Message))
 				log.Debug("cmsg:%+v", cmsg)
@@ -122,8 +123,10 @@ func (p *Processor) Unmarshal(a *net.TcpAgent, data []byte) error {
 			//找到callid 赋值调用 不用解析 in
 			callId := msg.CallID
 			p.mutex.RLock()
-			defer p.mutex.RUnlock()
-			if v, ok := p.FuncList[callId]; ok && nil != v {
+			v, ok := p.FuncList[callId]
+			p.mutex.RUnlock()
+
+			if ok && nil != v {
 				if nil != v.server {
 					udata := new(net.UserData)
 					udata.UId = msg.UId
