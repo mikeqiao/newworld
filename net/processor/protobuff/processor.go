@@ -72,7 +72,7 @@ func (p *Processor) Unmarshal(a *net.TcpAgent, data []byte) error {
 				cmsg := reflect.New(v.in.Elem()).Interface()
 				err = proto.Unmarshal(msg.Info, cmsg.(proto.Message))
 				log.Debug("cmsg:%+v", cmsg)
-				if nil != err {
+				if nil == err {
 					if nil != v.server {
 						udata := new(net.UserData)
 						udata.UId = msg.UId
@@ -142,7 +142,7 @@ func (p *Processor) Unmarshal(a *net.TcpAgent, data []byte) error {
 			if v, ok := p.HandleList[callId]; ok && nil != v {
 				cmsg := reflect.New(v.in.Elem()).Interface()
 				err = proto.Unmarshal(msg.Info, cmsg.(proto.Message))
-				if nil != err {
+				if nil == err {
 					if nil != v.handle {
 						udata := new(net.UserData)
 						udata.UId = msg.UId
