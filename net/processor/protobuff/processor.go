@@ -71,6 +71,7 @@ func (p *Processor) Unmarshal(a *net.TcpAgent, data []byte) error {
 			if v, ok := p.FuncList[callId]; ok && nil != v {
 				cmsg := reflect.New(v.in.Elem()).Interface()
 				err = proto.Unmarshal(msg.Info, cmsg.(proto.Message))
+				log.Debug("cmsg:%+v", cmsg)
 				if nil != err {
 					if nil != v.server {
 						udata := new(net.UserData)
