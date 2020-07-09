@@ -39,10 +39,12 @@ func (m *Mod) Start(wg *sync.WaitGroup) {
 
 func (m *Mod) Run(wg *sync.WaitGroup) {
 	wg.Add(1)
+	log.Debug("mod:%v, Start", m.Name)
 	m.Server.Start()
 	for {
 		select {
 		case <-m.closeSig:
+			log.Debug("mod:%v, close", m.Name)
 			m.Server.Close()
 			goto Loop
 		case ri := <-m.Server.ChanCallBack:
