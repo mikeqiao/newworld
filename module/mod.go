@@ -59,6 +59,7 @@ Loop:
 
 func (m *Mod) Close() {
 	m.closeSig <- true
+	log.Debug("mod:%v, close", m.Name)
 }
 
 func (m *Mod) GetAllFunc() map[string]*SFunc {

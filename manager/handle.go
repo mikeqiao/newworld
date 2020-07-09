@@ -69,6 +69,7 @@ func HandleServerLoginRQ(msg interface{}, data *net.UserData) {
 		log.Debug(" wrong server func info msg: %+v", m)
 		return
 	}
+	log.Debug(" HandleServerLoginRQ info msg: %+v", m)
 	uid := m.GetSid()
 	name := m.GetName()
 	module := ModManager.GetMod(uid)

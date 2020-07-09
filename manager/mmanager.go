@@ -56,6 +56,7 @@ func (m *MManager) Registe(mod *mod.Mod) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	if nil == m {
+		log.Error("This mod is nil")
 		return errors.New("This mod is nil")
 	}
 
