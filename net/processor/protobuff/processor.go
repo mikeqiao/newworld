@@ -141,15 +141,20 @@ func (p *Processor) Unmarshal(a *net.TcpAgent, data []byte) error {
 			callId := msg.CallID
 			if v, ok := p.HandleList[callId]; ok && nil != v {
 				cmsg := reflect.New(v.in.Elem()).Interface()
-				if nil != v.handle {
-					udata := new(net.UserData)
-					udata.UId = msg.UId
-					udata.UIdList = msg.UIdList[:]
-					udata.CallId = msg.CallID
-					udata.CallBackId = msg.CallBackID
-					udata.MsgType = msg.MsgType
-					udata.Agent = a
-					v.handle(cmsg, udata)
+				err = proto.Unmarshal(msg.Info, cmsg.(proto.Message))
+				if nil != err {
+					if nil != v.handle {
+						udata := new(net.UserData)
+						udata.UId = msg.UId
+						udata.UIdList = msg.UIdList[:]
+						udata.CallId = msg.CallID
+						udata.CallBackId = msg.CallBackID
+						udata.MsgType = msg.MsgType
+						udata.Agent = a
+						v.handle(cmsg, udata)
+					}
+				} else {
+					log.Error("Unmarshal call msg err:%v", err)
 				}
 			}
 		default:
