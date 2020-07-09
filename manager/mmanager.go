@@ -62,6 +62,7 @@ func (m *MManager) Registe(mod *mod.Mod) error {
 	m.modList[mod.Uid] = mod
 	if nil != DefaultProcessor {
 		DefaultProcessor.Register(mod)
+		log.Debug("register mod:%v", mod.Name)
 	}
 	return nil
 }
