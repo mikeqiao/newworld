@@ -111,7 +111,7 @@ func HandleServerLoginRQ(msg interface{}, data *net.UserData) {
 	}
 	ModManager.Registe(module)
 
-	data.CallId = "ServerLogInRes"
+	data.CallId = "ServerLoginRS"
 	data.MsgType = common.Msg_Handle
 	reqMsg := new(proto.ServerLogInRes)
 	reqMsg.Sid = config.Conf.SInfo.Uid

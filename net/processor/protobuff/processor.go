@@ -156,6 +156,8 @@ func (p *Processor) Unmarshal(a *net.TcpAgent, data []byte) error {
 				} else {
 					log.Error("Unmarshal call msg err:%v", err)
 				}
+			} else {
+				log.Error("no this service:%v", callId)
 			}
 		default:
 			log.Error("err msgType:%v", msg.MsgType)
