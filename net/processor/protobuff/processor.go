@@ -243,7 +243,6 @@ func (p *Processor) Handle(funcName string, in interface{}, udata *net.UserData)
 
 func (p *Processor) GetLocalFunc() (flist []*bmsg.FuncInfo) {
 	for _, v := range p.FuncList {
-		log.Debug("info:%v, type:%v", v.fid, v.ftype)
 		if 1 == v.ftype {
 			nf := new(bmsg.FuncInfo)
 			nf.Name = v.fid
