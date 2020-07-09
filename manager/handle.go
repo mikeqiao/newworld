@@ -73,13 +73,17 @@ func HandleServerLoginRQ(msg interface{}, data *net.UserData) {
 	uid := m.GetSid()
 	name := m.GetName()
 	module := ModManager.GetMod(uid)
+	log.Debug("111")
 	if nil != module {
 		ModManager.RemoveMod(uid)
+		log.Debug("222")
 	}
+
 	agent := data.Agent
 	agent.SetRemotUID(uid)
 	agent.SetLogin()
 	module = NewMod(uid, name)
+	log.Debug("333")
 	for _, v := range m.GetFlist() {
 		if nil != v {
 			f := func(c *mod.CallInfo) {
