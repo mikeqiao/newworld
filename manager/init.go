@@ -30,11 +30,11 @@ func Init() {
 }
 
 func Register() {
-	DefaultProcessor.SetHandler("ServerConnectOK", proto.ServerConnect{}, HandleServerConnectOK)
-	DefaultProcessor.SetHandler("ServerLoginRQ", proto.ServerLogInReq{}, HandleServerLoginRQ)
-	DefaultProcessor.SetHandler("ServerLoginRS", proto.ServerLogInRes{}, HandleServerLoginRS)
-	DefaultProcessor.SetHandler("ServerTick", proto.ServerTick{}, HandleServerTick)
-	DefaultProcessor.SetHandler("ServerTickBack", proto.ServerTick{}, HandleServerTickBack)
+	DefaultProcessor.SetHandler("ServerConnectOK", &proto.ServerConnect{}, HandleServerConnectOK)
+	DefaultProcessor.SetHandler("ServerLoginRQ", &proto.ServerLogInReq{}, HandleServerLoginRQ)
+	DefaultProcessor.SetHandler("ServerLoginRS", &proto.ServerLogInRes{}, HandleServerLoginRS)
+	DefaultProcessor.SetHandler("ServerTick", &proto.ServerTick{}, HandleServerTick)
+	DefaultProcessor.SetHandler("ServerTickBack", &proto.ServerTick{}, HandleServerTickBack)
 }
 
 func Run() {
