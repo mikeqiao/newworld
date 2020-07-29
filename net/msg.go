@@ -36,7 +36,7 @@ func NewMsgParser() *MsgParser {
 		lenMsgLen:    4,
 		minMsgLen:    1,
 		maxMsgLen:    4096,
-		littleEndian: false,
+		littleEndian: true,
 	}
 	return p
 }
