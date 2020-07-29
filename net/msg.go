@@ -3,6 +3,7 @@ package net
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 	"math"
 )
@@ -102,7 +103,7 @@ func (p *MsgParser) Read(conn *TCPConn) ([]byte, error) {
 		}
 
 	}
-
+	fmt.Println("msg len:%v", msglen)
 	//check len
 	if msglen > p.maxMsgLen {
 		return nil, errors.New("message too long")
