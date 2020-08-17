@@ -11,9 +11,11 @@ var Conf struct {
 	LogFlag     uint32
 	LogLevel    string
 	LogPath     string
-	Redis       RedisConf
-	SInfo       ServerInfo
-	Servers     []NetServer
+	HttpServer  string
+
+	Redis   RedisConf
+	SInfo   ServerInfo
+	Servers []NetServer
 }
 
 type RedisConf struct {
