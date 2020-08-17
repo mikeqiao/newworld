@@ -85,6 +85,12 @@ func (n *NetServerManager) Run() {
 	for _, v := range conf.Conf.Servers {
 		n.NewNetServer(v.Uid, v.CType, v.Name, v.ListenAddr)
 	}
+
+	for _, v := range n.HttpS {
+		if nil != v {
+			go v.Start(n.wg)
+		}
+	}
 }
 
 func NewHtpServer(addr string) *httpserver.Server {
