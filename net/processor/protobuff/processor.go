@@ -26,15 +26,36 @@ type HandleInfo struct {
 	in     reflect.Type //请求数据类型
 }
 
-type FuncInfo struct {
-	ftype   uint32          //1 本地服务 2 远程注册来的服务
-	fid     string          //服务名称
-	InName  string          //请求数据类型名字
-	OutName string          //返回数据类型名字
-	in      reflect.Type    //请求数据类型
-	out     reflect.Type    //返回数据类型
-	f       interface{}     //服务
+type ServerInfo struct {
+	uid     uint64
+	version uint32
+	state   uint32
 	server  *mod.RpcService //服务的模块
+
+}
+
+func (s *ServerInfo) Call(name string, f, cb, in interface{}, out reflect.Type, udata *net.UserData) {
+	s.server.Call(name, f, cb, in, out, udata)
+}
+
+type FuncInfo struct {
+	ftype   uint32 //1 本地服务 2 远程注册来的服务
+	fid     string //服务名称
+	InName  string //请求数据类型名字
+	OutName string //返回数据类型名字
+	Group   string
+	in      reflect.Type           //请求数据类型
+	out     reflect.Type           //返回数据类型
+	f       interface{}            //服务
+	server  *ServerInfo            //服务的模块
+	SList   map[uint64]*ServerInfo //服务的模块
+}
+
+func (f *FuncInfo) GetServer(mid uint64) *ServerInfo {
+	if v, ok := f.SList[mid]; ok {
+		return v
+	}
+	return nil
 }
 
 func (p *Processor) Init() {
@@ -74,7 +95,12 @@ func (p *Processor) Unmarshal(a *net.TcpAgent, data []byte) error {
 				err = proto.Unmarshal(msg.Info, cmsg.(proto.Message))
 				log.Debug("cmsg:%+v", cmsg)
 				if nil == err {
-					if nil != v.server {
+					mid := a.GetState(v.Group)
+					server := v.server
+					if 0 != mid {
+						server = v.GetServer(mid)
+					}
+					if nil != server {
 						udata := new(net.UserData)
 						udata.UId = msg.UId
 						udata.UIdList = msg.UIdList[:]
@@ -90,7 +116,7 @@ func (p *Processor) Unmarshal(a *net.TcpAgent, data []byte) error {
 							a.WriteMsg(udata, in)
 						}
 
-						v.server.Call(v.f, cb, cmsg, v.out, udata)
+						server.Call(callId, v.f, cb, cmsg, v.out, udata)
 					} else {
 						log.Error("this service:%v not working", callId)
 					}
@@ -135,7 +161,7 @@ func (p *Processor) Unmarshal(a *net.TcpAgent, data []byte) error {
 					udata.CallBackId = msg.CallBackID
 					udata.MsgType = msg.MsgType
 					udata.Agent = a
-					v.server.Call(v.f, nil, msg.Info, v.out, udata)
+					v.server.Call(callId, v.f, nil, msg.Info, v.out, udata)
 				} else {
 					log.Error("this service:%v not working", callId)
 				}
@@ -199,30 +225,50 @@ func (p *Processor) Register(tmod *mod.Mod) {
 		p.mutex.Lock()
 		for k, v := range flist {
 			if nil != v {
-				f := new(FuncInfo)
-				f.fid = k
-				f.f = v.F
-				f.in = v.In
-				f.out = v.Out
-				f.InName = v.InName
-				f.OutName = v.OutName
-				f.server = tmod.Server
-				f.ftype = v.Ftyp
-				if 2 == f.ftype {
-					if ttype, ok := p.MsgList[f.InName]; ok {
-						f.in = ttype
-					} else {
-						log.Error("no this name msg:%v", f.InName)
+				if hf, ok := p.FuncList[k]; ok && nil != hf {
+
+					sinfo := new(ServerInfo)
+					sinfo.uid = tmod.Uid
+					sinfo.version = tmod.Version
+					sinfo.server = tmod.Server
+					hf.SList[tmod.Uid] = sinfo
+					if sinfo.version > hf.server.version {
+						hf.server = sinfo
 					}
-					if ttype, ok := p.MsgList[f.OutName]; ok {
-						f.out = ttype
-					} else {
-						log.Error("no this name msg:%v", f.OutName)
+
+				} else {
+
+					f := new(FuncInfo)
+					f.fid = k
+					f.f = v.F
+					f.in = v.In
+					f.out = v.Out
+					f.InName = v.InName
+					f.OutName = v.OutName
+					f.Group = tmod.Name
+					f.ftype = v.Ftyp
+					if 2 == f.ftype {
+						if ttype, ok := p.MsgList[f.InName]; ok {
+							f.in = ttype
+						} else {
+							log.Error("no this name msg:%v", f.InName)
+						}
+						if ttype, ok := p.MsgList[f.OutName]; ok {
+							f.out = ttype
+						} else {
+							log.Error("no this name msg:%v", f.OutName)
+						}
 					}
+
+					f.SList = make(map[uint64]*ServerInfo)
+					sinfo := new(ServerInfo)
+					sinfo.uid = tmod.Uid
+					sinfo.version = tmod.Version
+					sinfo.server = tmod.Server
+					f.SList[tmod.Uid] = sinfo
+					f.server = sinfo
+					p.FuncList[f.fid] = f
 				}
-
-				p.FuncList[f.fid] = f
-
 			}
 		}
 		p.mutex.Unlock()
@@ -236,7 +282,7 @@ func (p *Processor) RegisterMsg(name string, mtype reflect.Type) {
 func (p *Processor) Route(funcName string, cb, in interface{}, udata *net.UserData) {
 	if v, ok := p.FuncList[funcName]; ok && nil != v {
 
-		v.server.Call(v.f, cb, in, v.out, udata)
+		v.server.Call(funcName, v.f, cb, in, v.out, udata)
 	}
 }
 

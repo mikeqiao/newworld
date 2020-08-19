@@ -4,6 +4,11 @@ option go_package = ".;proto";
 package proto;
 
 
+message FuncState{
+	string name = 1;
+	uint32 state = 2;
+}
+
 message CallMsgInfo
 {
 	uint32	msgType  =1;  		//消息类型 1 请求服务 2 消息回调 3 推送消息
@@ -18,7 +23,11 @@ message ModInfo
 {
 	uint64 mid =1; //模块id
 	string name = 2; //模块名字
-	uint32 state = 3; //模块状态
+	uint32 call = 3; //call数量
+	uint32 callBack = 4; //callback 数量
+	uint32 wCallBack = 5;
+	repeated FuncState info = 6;
+	repeated string err = 7;
 }
 
 message ServerConnect
@@ -58,3 +67,12 @@ message ServerLogInRes
 	repeated FuncInfo flist =3;//服务列表
 }
 
+message ServerInfo{
+	uint64 uid = 1;
+	string name = 2;
+	repeated ModInfo mInfo = 3;
+}
+
+message ServerList{
+	repeated ServerInfo sInfo = 1;
+}

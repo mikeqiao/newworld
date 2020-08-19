@@ -7,6 +7,7 @@ import (
 )
 
 var Conf struct {
+	Version     uint32
 	LenStackBuf uint32
 	LogFlag     uint32
 	LogLevel    string

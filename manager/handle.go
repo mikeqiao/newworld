@@ -3,6 +3,8 @@ package manager
 import (
 	"time"
 
+	"github.com/mikeqiao/newworld/state"
+
 	"github.com/mikeqiao/newworld/common"
 	"github.com/mikeqiao/newworld/config"
 	"github.com/mikeqiao/newworld/log"
@@ -43,10 +45,12 @@ func HandleServerTick(msg interface{}, data *net.UserData) {
 		u.MsgType = common.Msg_Handle
 		u.CallId = "ServerTickBack"
 		nowtime := time.Now().Unix()
+		stick := new(proto.ServerTick)
 
-		data.Agent.WriteMsg(u, &proto.ServerTick{
-			Time: uint32(nowtime),
-		})
+		stick.Time = uint32(nowtime)
+		md := ModManager.GetAllModState()
+		stick.MInfo = md[:]
+		data.Agent.WriteMsg(u, stick)
 	}
 }
 
@@ -55,7 +59,8 @@ func HandleServerTickBack(msg interface{}, data *net.UserData) {
 	// 消息的发送者
 	if nil != data && nil != data.Agent {
 		log.Debug("server:%v, tickBack:%v", data.Agent.RUId, m.GetTime())
-		data.Agent.SetTick(time.Now().Unix())
+		//	data.Agent.SetTick(time.Now().Unix())
+		state.SState.UpdateServerInfo(data.Agent.RUId, m.GetMInfo())
 	}
 }
 

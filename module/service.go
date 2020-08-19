@@ -10,6 +10,7 @@ import (
 	conf "github.com/mikeqiao/newworld/config"
 	"github.com/mikeqiao/newworld/log"
 	"github.com/mikeqiao/newworld/net"
+	"github.com/mikeqiao/newworld/net/proto"
 )
 
 type RpcService struct {
@@ -20,6 +21,8 @@ type RpcService struct {
 	ChanCall     chan *CallInfo
 	ChanCallBack chan *Return //
 	WCallBack    map[string]*CallInfo
+	NFunc        map[string]uint32 //用于统计
+	ErrorList    []string          //用于统计
 	mutex        sync.RWMutex
 }
 
@@ -27,17 +30,19 @@ func (s *RpcService) Init() {
 	s.ChanCall = make(chan *CallInfo, s.Max)
 	s.ChanCallBack = make(chan *Return, s.Max)
 	s.WCallBack = make(map[string]*CallInfo)
+	s.NFunc = make(map[string]uint32)
 }
 
 func (s *RpcService) Start() {
 	s.Working = true
 }
 
-func (s *RpcService) Call(f, cb, in interface{}, out reflect.Type, udata *net.UserData) {
+func (s *RpcService) Call(name string, f, cb, in interface{}, out reflect.Type, udata *net.UserData) {
 	if !s.Working {
 		return
 	}
 	ci := &CallInfo{
+		FuncId:  name,
 		Out:     out,
 		CF:      f,
 		Args:    in,
@@ -54,6 +59,13 @@ func (s *RpcService) Call(f, cb, in interface{}, out reflect.Type, udata *net.Us
 	if err != nil && nil != cb {
 		log.Error("err:%v", err)
 		s.ChanCallBack <- &Return{err: err, ret: nil, cb: cb}
+	} else {
+		if v, ok := s.NFunc[name]; ok {
+			v += 1
+		} else {
+			s.NFunc[name] = 1
+		}
+
 	}
 }
 
@@ -64,6 +76,7 @@ func (s *RpcService) Exec(ci *CallInfo) {
 	}
 	defer func() {
 		if r := recover(); r != nil {
+			s.ErrorList = append(s.ErrorList, ci.FuncId)
 			if conf.Conf.LenStackBuf > 0 {
 				buf := make([]byte, int32(conf.Conf.LenStackBuf))
 				l := runtime.Stack(buf, false)
@@ -80,6 +93,11 @@ func (s *RpcService) Exec(ci *CallInfo) {
 	} else if nil != ci.Cb {
 		s.ret(ci, &Return{err: fmt.Errorf("err func format")})
 		log.Error("err func format")
+	}
+	if v, ok := s.NFunc[ci.FuncId]; ok {
+		v -= 1
+	} else {
+		log.Error("err func count")
 	}
 }
 
@@ -171,6 +189,21 @@ func (s *RpcService) AddWaitCallBack(c *CallInfo) string {
 	s.WCallBack[key] = c
 	s.mutex.Unlock()
 	return key
+}
+
+func (s *RpcService) GetServiceInfo(info *proto.ModInfo) {
+	info.Call = uint32(len(s.ChanCall))
+	info.CallBack = uint32(len(s.ChanCallBack))
+	info.WCallBack = uint32(len(s.WCallBack))
+	var t []*proto.FuncState = make([]*proto.FuncState, len(s.NFunc))
+	for k, v := range s.NFunc {
+		t = append(t, &proto.FuncState{
+			Name:  k,
+			State: v,
+		})
+	}
+	info.Info = t[:]
+	info.Err = s.ErrorList[:]
 }
 
 //msg->route->mod->find func->callinfo ->add to server chan

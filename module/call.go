@@ -9,7 +9,7 @@ import (
 
 type CallInfo struct {
 	//	ModId   uint64 //module uid
-	//	FuncId  string
+	FuncId  string
 	Out     reflect.Type  //返回数据类型
 	CF      interface{}   //执行function
 	Cb      interface{}   //callback

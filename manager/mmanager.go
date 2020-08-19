@@ -4,6 +4,8 @@ import (
 	"errors"
 	"sync"
 
+	"github.com/mikeqiao/newworld/net/proto"
+
 	"github.com/mikeqiao/newworld/log"
 	mod "github.com/mikeqiao/newworld/module"
 	"github.com/mikeqiao/newworld/net"
@@ -125,4 +127,18 @@ func (m *MManager) Close() {
 	}
 	m.mutex.Unlock()
 	m.wg.Wait()
+}
+
+func (m *MManager) GetAllModState() []*proto.ModInfo {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+	var info []*proto.ModInfo = make([]*proto.ModInfo, len(m.modList))
+	for _, v := range m.modList {
+		if nil != v {
+			a := v.GetModState()
+			info = append(info, a)
+		}
+	}
+	return info
+
 }

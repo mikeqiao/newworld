@@ -4,17 +4,22 @@ import (
 	"reflect"
 	"sync"
 
+	"github.com/mikeqiao/newworld/config"
+
 	"github.com/mikeqiao/newworld/log"
+	"github.com/mikeqiao/newworld/net/proto"
 )
 
 type Mod struct {
 	Uid      uint64
+	Version  uint32
 	Name     string
 	Server   *RpcService
 	FuncList map[string]*SFunc
 	closeSig chan bool //模块关闭信号
 	Closed   bool
 	Working  bool
+	info     *proto.ModInfo
 }
 
 type SFunc struct {
@@ -27,11 +32,15 @@ type SFunc struct {
 }
 
 func (m *Mod) Init() {
+	m.Version = config.Conf.Version
 	m.Server = new(RpcService)
 	m.Server.Max = 10240
 	m.Server.Init()
 	m.FuncList = make(map[string]*SFunc)
 	m.closeSig = make(chan bool, 1)
+	m.info = new(proto.ModInfo)
+	m.info.Mid = m.Uid
+	m.info.Name = m.Name
 
 }
 
@@ -104,4 +113,12 @@ func (m *Mod) RegisterRemote(fname, req, res string, f interface{}) {
 		sf.Ftyp = 2
 		m.FuncList[fname] = sf
 	}
+}
+
+func (m *Mod) GetModState() *proto.ModInfo {
+	if nil != m.Server {
+		m.Server.GetServiceInfo(m.info)
+
+	}
+	return m.info
 }

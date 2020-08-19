@@ -24,7 +24,8 @@ type TcpAgent struct {
 	Closed       bool
 	Ctype        uint32 //连接类型 1 server  2 client
 	userData     interface{}
-	Mod          interface{} //agent 所属于的mod 的指针
+	StateList    map[string]uint64 //所绑定服务的状态
+	Mod          interface{}       //agent 所属于的mod 的指针
 	CloseChannel chan bool
 }
 
@@ -162,4 +163,21 @@ func (a *TcpAgent) WriteMsg(u *UserData, msg interface{}) {
 
 func (a *TcpAgent) IsClose() bool {
 	return a.Closed
+}
+
+func (a *TcpAgent) AddState(mname string, mid uint64) {
+	a.StateList[mname] = mid
+}
+
+func (a *TcpAgent) RemoveState(mname string) {
+	if _, ok := a.StateList[mname]; ok {
+		delete(a.StateList, mname)
+	}
+}
+
+func (a *TcpAgent) GetState(mname string) uint64 {
+	if v, ok := a.StateList[mname]; ok {
+		return v
+	}
+	return 0
 }
