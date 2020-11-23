@@ -70,8 +70,8 @@ func (m *MManager) Registe(mod *mod.Mod) error {
 	return nil
 }
 
-func (m *MManager) Route(mid uint64, fid uint32, cb interface{}, in interface{}, data *net.UserData) {
-
+func (m *MManager) Route(fid string, cb interface{}, in interface{}, data *net.UserData) {
+	DefaultProcessor.Route(fid, cb, in, data)
 }
 
 func (m *MManager) RemoveMod(mid uint64) {

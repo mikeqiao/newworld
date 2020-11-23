@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"runtime"
 	"sync"
+	"time"
 
 	conf "github.com/mikeqiao/newworld/config"
 	"github.com/mikeqiao/newworld/log"
@@ -49,6 +50,7 @@ func (s *RpcService) Call(name string, f, cb, in interface{}, out reflect.Type, 
 		Data:    udata,
 		chanRet: s.ChanCallBack,
 		Cb:      cb,
+		STime:   time.Now().Unix(),
 	}
 	var err error
 	select {
@@ -58,7 +60,7 @@ func (s *RpcService) Call(name string, f, cb, in interface{}, out reflect.Type, 
 	}
 	if err != nil && nil != cb {
 		log.Error("err:%v", err)
-		s.ChanCallBack <- &Return{err: err, ret: nil, cb: cb}
+		ci.SetResult(nil, err)
 	} else {
 		if v, ok := s.NFunc[name]; ok {
 			v += 1
@@ -91,7 +93,8 @@ func (s *RpcService) Exec(ci *CallInfo) {
 	if ok {
 		f(ci)
 	} else if nil != ci.Cb {
-		s.ret(ci, &Return{err: fmt.Errorf("err func format")})
+		err := fmt.Errorf("err func format")
+		ci.SetResult(nil, err)
 		log.Error("err func format")
 	}
 	if v, ok := s.NFunc[ci.FuncId]; ok {
@@ -107,9 +110,10 @@ func (s *RpcService) CallBack(cbid string, in interface{}, err error) {
 	cb, ok := s.WCallBack[cbid]
 	if ok {
 		delete(s.WCallBack, cbid)
+		cb.SetResult(in, err)
+	} else {
+		log.Error("err CallBack key：%v", cbid)
 	}
-
-	cb.SetResult(in, err)
 
 }
 
