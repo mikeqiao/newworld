@@ -22,11 +22,12 @@ type TCPServer struct {
 func (t *TCPServer) init() {
 	ln, err := net.Listen("tcp", t.Addr)
 	if err != nil {
-		log.Error("%v", err)
+		log.Fatal("%v", err)
 	}
 	if t.CreateAgent == nil {
 		log.Error("CreateAgent must not be nil")
 	}
+	log.Debug("serve Listen:%v", t.Addr)
 	t.ln = ln
 }
 

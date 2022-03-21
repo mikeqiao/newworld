@@ -21,9 +21,18 @@
   [
     {
       "Uid": 2001,
-      "Name": "Out",
-      "CType": 2,
+      "Name": "Server_2",
+      "PendingWriteNum": 1024,
       "ListenAddr": "127.0.0.1:7201"
+    }
+  ],
+  "Clients":
+  [
+    {
+      "Uid": 2002,
+      "Name": "Client_2",
+      "PendingWriteNum": 1024,
+      "ConnectAddr": "127.0.0.1:7202"
     }
   ]
 }
