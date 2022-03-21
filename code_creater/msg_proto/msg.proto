@@ -1,0 +1,13 @@
+syntax            = "proto3";
+option go_package = "./msg_proto";
+
+package msg_proto;
+
+message FuncReq {
+    string name  = 1;
+    uint32 state = 2;
+}
+message FuncRes {
+    string name  = 1;
+    uint32 state = 2;
+}

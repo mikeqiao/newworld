@@ -20,3 +20,9 @@
 		两个服务器间的连接数 相当于两个服务器的func_mod 的总和
 		
 	}
+
+    网络 ->  route to Mod -> mod内是一个 协程  拥有一个funcList
+    通过 uid 找到 Mod， 再 mod 内 找到 funcList 执行
+    
+    
+    

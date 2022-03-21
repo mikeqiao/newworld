@@ -1,27 +1,31 @@
 package state
 
 import (
-	"github.com/mikeqiao/newworld/net/proto"
+	"github.com/mikeqiao/newworld/net/base_proto"
+	"sync"
 )
 
 var SState ServerState
 
 type ServerState struct {
+	mutex      sync.Mutex
 	LastTime   uint32
-	ServerList map[uint64]*proto.ServerInfo
+	ServerList map[uint64]*base_proto.ServerInfo
 }
 
 func (s *ServerState) Init() {
-	s.ServerList = make(map[uint64]*proto.ServerInfo)
+	s.ServerList = make(map[uint64]*base_proto.ServerInfo)
 }
 
-func (s *ServerState) UpdateServerInfo(uid uint64, data []*proto.ModInfo) {
+func (s *ServerState) UpdateServerInfo(uid uint64, data []*base_proto.ModInfo) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	if v, ok := s.ServerList[uid]; ok && nil != v {
 		v.MInfo = data[:]
 	} else {
-		sinfo := new(proto.ServerInfo)
-		sinfo.Uid = uid
-		sinfo.MInfo = data[:]
-		s.ServerList[uid] = sinfo
+		sInfo := new(base_proto.ServerInfo)
+		sInfo.Uid = uid
+		sInfo.MInfo = data[:]
+		s.ServerList[uid] = sInfo
 	}
 }

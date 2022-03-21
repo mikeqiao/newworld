@@ -23,20 +23,22 @@ func Init() {
 }
 
 func (r *CRedis) InitDB() {
-	r.Pool = Newfactory("")
+	r.Pool = NewFactory("")
 	r.Life = config.Conf.Redis.Life * 3600 * 24
 }
 
 func (r *CRedis) OnClose() {
-	r.Pool.Close()
+	err := r.Pool.Close()
+	if nil != err {
+		log.Error("CRedis OnClose:%v", err)
+	}
 }
 
-func Newfactory(name string) *redis.Pool {
-
+func NewFactory(name string) *redis.Pool {
 	host := config.Conf.Redis.Host
 	port := config.Conf.Redis.Port
 	password := config.Conf.Redis.Password
-	count := config.Conf.Redis.Count
+	count := config.Conf.Redis.MaxIdle
 	pool := &redis.Pool{
 		IdleTimeout: 180 * time.Second,
 		MaxIdle:     int(count),
@@ -54,6 +56,6 @@ func Newfactory(name string) *redis.Pool {
 			return c, nil
 		},
 	}
-	log.Debug("connnect redis success")
+	log.Debug("connect redis success")
 	return pool
 }

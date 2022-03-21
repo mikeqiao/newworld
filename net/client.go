@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mikeqiao/newworld/net/proto"
+	"github.com/mikeqiao/newworld/net/base_proto"
 
 	"github.com/mikeqiao/newworld/log"
 )
@@ -14,96 +14,93 @@ type TCPClient struct {
 	UId             uint64
 	Addr            string // 地址
 	Name            string
-	ConnectInterval time.Duration                                                  // 请求链接的间隔
-	CreateAgent     func(*TCPConn, Processor, uint64, uint32, chan bool) *TcpAgent // 代理
-	Closed          bool                                                           // 关闭标识符
+	ConnectInterval time.Duration                                             // 请求链接的间隔
+	CreateAgent     func(*TCPConn, Processor, uint32, int64, int64) *TcpAgent // 代理
+	Closed          bool                                                      // 关闭标识符
 	Working         bool
 	Processor       Processor
-	CloseChannel    chan bool
+	CloseChannel    chan uint64
+	PendingWriteNum uint32 //配置 chan 容量
 	//msg parser
 	Agent *TcpAgent
 }
 
-func (this *TCPClient) init() {
-	if this.ConnectInterval <= 0 {
-		this.ConnectInterval = 3 * time.Second
-		log.Debug("invalid ConnectInterval, reset to %v", this.ConnectInterval)
+func (t *TCPClient) init() {
+	if t.ConnectInterval <= 0 {
+		t.ConnectInterval = 3 * time.Second
+		log.Debug("invalid ConnectInterval, reset to %v", t.ConnectInterval)
 	}
-	if this.CreateAgent == nil {
+	if t.CreateAgent == nil {
 		log.Error("CreateAgent must not be nil")
 		return
 	}
-	this.CloseChannel = make(chan bool, 1)
-	this.Closed = false
+	t.CloseChannel = make(chan uint64, 1)
+	t.Closed = false
 }
 
-func (this *TCPClient) dial() net.Conn {
+func (t *TCPClient) dial() net.Conn {
 	for {
-		conn, err := net.Dial("tcp", this.Addr)
-		if err == nil || this.Closed {
+		conn, err := net.Dial("tcp", t.Addr)
+		if err == nil || t.Closed {
 			return conn
 		}
-		log.Release("connect to %v error: %v", this.Addr, err)
-		time.Sleep(this.ConnectInterval)
+		log.Release("connect to %v error: %v", t.Addr, err)
+		time.Sleep(t.ConnectInterval)
 		continue
 	}
 }
 
-func (this *TCPClient) connect() {
-
-	conn := this.dial()
+func (t *TCPClient) connect() {
+	conn := t.dial()
 	if conn == nil {
 		log.Error("conn is nil")
 		return
 	}
-	if this.Closed {
-		conn.Close()
+	if t.Closed {
+		_ = conn.Close()
 		log.Debug("this is close")
 		return
 	}
 	tcpConn := newTCPConn(conn)
-	agent := this.CreateAgent(tcpConn, this.Processor, this.UId, 1, this.CloseChannel)
-	this.Agent = agent
-	agent.SetLocalUID(this.UId)
-	log.Debug("client connect ok:%v", this.Addr)
+	agent := t.CreateAgent(tcpConn, t.Processor, t.PendingWriteNum, 0, 0)
+	t.Agent = agent
+	agent.SetUID(t.UId)
+	log.Debug("client connect ok:%v", t.Addr)
 	//通知上层，连接成功，开始登录流程
-	tmsg := new(proto.ServerConnect)
-	tmsg.Uid = this.UId
-	this.Processor.Handle("ServerConnectOK", tmsg, &UserData{UId: this.UId, Agent: this.Agent})
+	tMsg := new(base_proto.ServerConnect)
+	tMsg.Uid = t.UId
+	//	t.Processor.Handle("ServerConnectOK", tMsg, &CallData{Uid: t.UId, Agent: t.Agent})
 }
 
-func (this *TCPClient) Start() {
-	this.init()
-	this.connect()
-
+func (t *TCPClient) Start() {
+	t.init()
+	t.connect()
 }
 
-func (this *TCPClient) ReStart() {
-	this.connect()
-
+func (t *TCPClient) ReStart() {
+	t.connect()
 }
 
-func (this *TCPClient) Close() {
-	this.Closed = true
-	this.Agent.Close()
+func (t *TCPClient) Close() {
+	t.Closed = true
+	t.Agent.DoClose()
 }
 
-func (this *TCPClient) Run(wg *sync.WaitGroup) {
-	if this.Working {
-		return
-	}
+func (t *TCPClient) Run(wg *sync.WaitGroup) {
 	wg.Add(1)
 	defer wg.Done()
+	if t.Working {
+		return
+	}
+	t.Working = true
 	for {
-		this.Working = true
 		select {
-		case <-this.CloseChannel:
-			if this.Closed {
+		case <-t.CloseChannel:
+			if t.Closed {
 				return
 			} else {
-				this.ReStart()
+				t.ReStart()
 			}
 		}
 	}
-
 }

@@ -1,6 +1,7 @@
 package data
 
 import (
+	"github.com/mikeqiao/newworld/log"
 	"sync"
 
 	"github.com/mikeqiao/newworld/db/redis"
@@ -25,15 +26,21 @@ func (u *UpdateMod) Update() {
 	defer u.mutex.Unlock()
 	if u.do {
 		if len(u.update) > 0 {
-			redis.R.Hash_SetDataMap(u.table, u.update)
-
-			u.update = make(map[string]interface{})
+			err := redis.R.Hash_SetDataMap(u.table, u.update)
+			if nil != err {
+				u.update = make(map[string]interface{})
+			} else {
+				log.Error("table:%v, err:%v", u.table, err)
+			}
 		}
 		if len(u.del) > 0 {
-
-			redis.R.Hash_DelDataMap(u.table, u.del)
-			u.do = false
-			u.del = make(map[string]interface{})
+			err := redis.R.Hash_DelDataMap(u.table, u.del)
+			if nil != err {
+				u.do = false
+				u.del = make(map[string]interface{})
+			} else {
+				log.Error("table:%v, err:%v", u.table, err)
+			}
 		}
 	}
 }
@@ -59,6 +66,10 @@ func (u *UpdateMod) DelData(key string) {
 }
 
 func (u *UpdateMod) GetAllData() map[string]string {
-	data, _ := redis.R.Hash_GetAllData(u.table)
+	data, err := redis.R.Hash_GetAllData(u.table)
+	if nil != err {
+		log.Error("table:%v, err:%v", u.table, err)
+		return nil
+	}
 	return data
 }

@@ -1,37 +1,36 @@
 package manager
 
 import (
-	"sync"
-	"time"
-
-	"github.com/mikeqiao/newworld/log"
 	"github.com/mikeqiao/newworld/net"
 	p "github.com/mikeqiao/newworld/net/processor/protobuff"
+	"sync"
 )
 
 var DefaultProcessor *p.Processor
 var ConnManager *NetConnManager
-var CreatID uint64
 
-func CreateAgent(conn *net.TCPConn, tp net.Processor, uid uint64, ctype uint32, c chan bool) *net.TcpAgent {
+func CreateAgent(conn *net.TCPConn, tp net.Processor, writeNum uint32, unCheckLifetime, tickLifetime int64) *net.TcpAgent {
+	if nil == ConnManager {
+		return nil
+	}
 	a := new(net.TcpAgent)
-	a.Ctype = ctype
-	CreatID += 1
-	a.Init(conn, tp, uid, CreatID, c)
-	ConnManager.AddAgent(a)
-
+	a.Init(conn, tp, writeNum, unCheckLifetime, tickLifetime, ConnManager.CloseUid)
+	a.Start(ConnManager.wg)
+	//	ConnManager.AddAgent(a)
 	return a
 }
 
 type NetConnManager struct {
-	isClose bool
-	mutex   sync.RWMutex
-	wg      *sync.WaitGroup
-	CList   map[uint64]*net.TcpAgent
+	isClose   bool
+	mutex     sync.RWMutex
+	wg        *sync.WaitGroup
+	CList     map[uint64]*net.TcpAgent
+	CloseUid  chan uint64
+	CLoseSign chan bool
 }
 
 func (n *NetConnManager) Init() {
-
+	n.CloseUid = make(chan uint64, 10)
 	n.wg = new(sync.WaitGroup)
 	n.CList = make(map[uint64]*net.TcpAgent)
 }
@@ -41,61 +40,39 @@ func (n *NetConnManager) AddAgent(agent *net.TcpAgent) {
 		return
 	}
 	n.mutex.Lock()
-	defer n.mutex.Unlock()
-	n.CList[agent.LUId] = agent
-	go func() {
+	n.CList[agent.UId] = agent
+	n.mutex.Unlock()
 
-		agent.Start(n.wg)
-		n.wg.Add(1)
-		agent.Run()
-		agent.Close()
-		n.wg.Done()
-		//从map 删除
-	}()
 }
 
 func (n *NetConnManager) Run(wg *sync.WaitGroup) {
-	go n.Updata(wg)
+	go n.Update(wg)
 }
 
-func (n *NetConnManager) Updata(wg *sync.WaitGroup) {
+func (n *NetConnManager) Update(wg *sync.WaitGroup) {
 	wg.Add(1)
-	t1 := time.NewTimer(time.Second * 1)
 	for {
 		select {
-		case <-t1.C:
-			if n.isClose == true {
-				goto Loop
+		case <-n.CLoseSign:
+			goto Loop
+		case agentId, ok := <-n.CloseUid:
+			if ok {
+				n.mutex.Lock()
+				delete(n.CList, agentId)
+				n.mutex.Unlock()
 			}
-			n.mutex.Lock()
-
-			for k, v := range n.CList {
-				//v.agent.OnClose()
-
-				if v.IsClose() == true {
-					log.Debug("userConn close, id:%v", k)
-					delete(n.CList, k)
-				}
-			}
-			n.mutex.Unlock()
-
-			t1.Reset(time.Second * 1)
 		}
-
 	}
-
 Loop:
 	wg.Done()
 }
 
 func (n *NetConnManager) Close() {
+	n.CLoseSign <- true
 	n.mutex.Lock()
-
 	for k, v := range n.CList {
-		//v.agent.OnClose()
-
 		if nil != v {
-			v.Close()
+			v.DoClose()
 			delete(n.CList, k)
 		}
 	}

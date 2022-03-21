@@ -28,7 +28,9 @@ func Start(f Func) {
 	//初始化基本设置
 	Init()
 	//初始化功能设置
-	f.Init()
+	if nil != f {
+		f.Init()
+	}
 	//开始运行服务程序
 	Run()
 	log.Debug("server is start")
@@ -36,11 +38,11 @@ func Start(f Func) {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, os.Kill)
 	sig := <-c
-	log.Release("bee closing down (signal: %v)", sig)
-	//关闭服务
-	Close()
+	log.Release("server closing down (signal: %v)", sig)
 	//关闭添加功能
 	f.Close()
+	//关闭服务
+	Close()
 	//等待所以线程结束
 	fmt.Println("wait group close")
 

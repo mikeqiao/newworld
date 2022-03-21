@@ -17,13 +17,14 @@ var Conf struct {
 	Redis   RedisConf
 	SInfo   ServerInfo
 	Servers []NetServer
+	Clients []NetClient
 }
 
 type RedisConf struct {
 	Host     string
 	Port     string
 	Password string
-	Count    uint32
+	MaxIdle  uint32
 	Life     uint32
 }
 
@@ -33,10 +34,17 @@ type ServerInfo struct {
 }
 
 type NetServer struct {
-	Uid        uint64
-	CType      uint32
-	Name       string
-	ListenAddr string
+	Uid             uint64
+	Name            string
+	ListenAddr      string
+	PendingWriteNum uint32
+}
+
+type NetClient struct {
+	Uid             uint64
+	Name            string
+	ConnectAddr     string
+	PendingWriteNum uint32
 }
 
 func Init() {

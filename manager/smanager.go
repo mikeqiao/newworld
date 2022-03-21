@@ -36,7 +36,7 @@ func (n *NetServerManager) AddHttpServer(addr string, server *httpserver.Server)
 	n.HttpS[addr] = server
 }
 
-func (n *NetServerManager) NewNetServer(uid uint64, ctype uint32, name, addr string) {
+func (n *NetServerManager) NewNetServer(uid uint64, name, addr string) {
 	n.mutex.Lock()
 	defer n.mutex.Unlock()
 	if s, ok := n.SList[uid]; ok && nil != s {
@@ -47,7 +47,6 @@ func (n *NetServerManager) NewNetServer(uid uint64, ctype uint32, name, addr str
 	newServer.UId = uid
 	newServer.Name = name
 	newServer.Addr = addr
-	newServer.Ctype = ctype
 	newServer.Processor = DefaultProcessor
 	newServer.CreateAgent = CreateAgent
 	newServer.Start(n.wg)
@@ -83,9 +82,8 @@ func (n *NetServerManager) Close() {
 
 func (n *NetServerManager) Run() {
 	for _, v := range conf.Conf.Servers {
-		n.NewNetServer(v.Uid, v.CType, v.Name, v.ListenAddr)
+		n.NewNetServer(v.Uid, v.Name, v.ListenAddr)
 	}
-
 	for _, v := range n.HttpS {
 		if nil != v {
 			go v.Start(n.wg)

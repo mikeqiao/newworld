@@ -14,7 +14,7 @@ import (
 	"github.com/mikeqiao/newworld/net/proto"
 )
 
-type RpcService struct {
+type ModService struct {
 	UId          uint64
 	State        uint64 //服务者状态(服务数量)
 	Max          uint32 //服务 最多等待数量
@@ -27,18 +27,18 @@ type RpcService struct {
 	mutex        sync.RWMutex
 }
 
-func (s *RpcService) Init() {
+func (s *ModService) Init() {
 	s.ChanCall = make(chan *CallInfo, s.Max)
 	s.ChanCallBack = make(chan *Return, s.Max)
 	s.WCallBack = make(map[string]*CallInfo)
 	s.NFunc = make(map[string]uint32)
 }
 
-func (s *RpcService) Start() {
+func (s *ModService) Start() {
 	s.Working = true
 }
 
-func (s *RpcService) Call(name string, f, cb, in interface{}, out reflect.Type, udata *net.UserData) {
+func (s *ModService) Call(name string, f, cb, in interface{}, out reflect.Type, udata *net.UserData) {
 	if !s.Working {
 		return
 	}
@@ -71,7 +71,7 @@ func (s *RpcService) Call(name string, f, cb, in interface{}, out reflect.Type, 
 	}
 }
 
-func (s *RpcService) Exec(ci *CallInfo) {
+func (s *ModService) Exec(ci *CallInfo) {
 	if nil == ci {
 		log.Error("nil call")
 		return
@@ -104,7 +104,7 @@ func (s *RpcService) Exec(ci *CallInfo) {
 	}
 }
 
-func (s *RpcService) CallBack(cbid string, in interface{}, err error) {
+func (s *ModService) CallBack(cbid string, in interface{}, err error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	cb, ok := s.WCallBack[cbid]
@@ -117,7 +117,7 @@ func (s *RpcService) CallBack(cbid string, in interface{}, err error) {
 
 }
 
-func (s *RpcService) GetCallBack(cbid string) *CallInfo {
+func (s *ModService) GetCallBack(cbid string) *CallInfo {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	cb, ok := s.WCallBack[cbid]
@@ -130,7 +130,7 @@ func (s *RpcService) GetCallBack(cbid string) *CallInfo {
 
 }
 
-func (s *RpcService) ExecCallBack(ri *Return) {
+func (s *ModService) ExecCallBack(ri *Return) {
 	defer func() {
 		if r := recover(); r != nil {
 			if conf.Conf.LenStackBuf > 0 {
@@ -154,7 +154,7 @@ func (s *RpcService) ExecCallBack(ri *Return) {
 	return
 }
 
-func (s *RpcService) Close() {
+func (s *ModService) Close() {
 	s.Working = false
 	err := errors.New("Module colsed")
 	s.mutex.Lock()
@@ -172,7 +172,7 @@ func (s *RpcService) Close() {
 
 }
 
-func (s *RpcService) ret(ci *CallInfo, ri *Return) {
+func (s *ModService) ret(ci *CallInfo, ri *Return) {
 	if s.ChanCallBack == nil {
 		return
 	}
@@ -187,7 +187,7 @@ func (s *RpcService) ret(ci *CallInfo, ri *Return) {
 	s.ChanCallBack <- ri
 }
 
-func (s *RpcService) AddWaitCallBack(c *CallInfo) string {
+func (s *ModService) AddWaitCallBack(c *CallInfo) string {
 	key := fmt.Sprintf("%p", c)
 	s.mutex.Lock()
 	s.WCallBack[key] = c
@@ -195,7 +195,7 @@ func (s *RpcService) AddWaitCallBack(c *CallInfo) string {
 	return key
 }
 
-func (s *RpcService) GetServiceInfo(info *proto.ModInfo) {
+func (s *ModService) GetServiceInfo(info *proto.ModInfo) {
 	info.Call = uint32(len(s.ChanCall))
 	info.CallBack = uint32(len(s.ChanCallBack))
 	info.WCallBack = uint32(len(s.WCallBack))

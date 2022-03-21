@@ -1,6 +1,7 @@
 package manager
 
 import (
+	conf "github.com/mikeqiao/newworld/config"
 	"sync"
 	"time"
 
@@ -24,6 +25,7 @@ func (n *NetClientManager) Init() {
 	n.AutoReconnect = true
 	n.wg = new(sync.WaitGroup)
 	n.CList = make(map[uint64]*net.TCPClient)
+	//读取配置
 }
 
 func (n *NetClientManager) NewClient(uid uint64, name, addr string) {
@@ -45,17 +47,10 @@ func (n *NetClientManager) NewClient(uid uint64, name, addr string) {
 }
 
 func (n *NetClientManager) Run() {
-	/*
-		n.mutex.Lock()
-		defer n.mutex.Unlock()
-		for k, v := range n.CList {
-			if nil != v {
-				go v.Run(n.wg)
-			} else {
-				log.Error("this Client  is nil:%v", k)
-			}
-		}
-	*/
+	//根据配置 执行 NewClient
+	for _, v := range conf.Conf.Clients {
+		n.NewClient(v.Uid, v.Name, v.ConnectAddr)
+	}
 }
 
 func (n *NetClientManager) Close() {

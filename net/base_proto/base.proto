@@ -1,0 +1,62 @@
+syntax            = "proto3";
+option go_package = "./base_proto";
+
+package base_proto;
+
+message FuncState {
+    string name  = 1;
+    uint32 state = 2;
+}
+
+message CallMsgInfo {
+    uint32 fromAgentId = 1;  //消息发送方(等于sessionId)
+    uint64 userId      = 2;  //请求处理的用户数据 key
+    string mod         = 3;  //模块名字
+    string function    = 4;  //请求方法名
+    bytes msgInfo      = 5;  //消息体
+    bytes context      = 6;  //消息上下文消息内容
+}
+message PushMsg {
+    repeated uint64 uIdList = 1;  //推送消息的接收者,只有 handlerType == 3 时候才会用到
+}
+
+message ModInfo {
+    uint64 mid              = 1;  //模块id
+    string name             = 2;  //模块名字
+    uint32 call             = 3;  //call数量
+    uint32 callBack         = 4;  //callback 数量
+    uint32 wCallBack        = 5;
+    repeated FuncState info = 6;
+    repeated string err     = 7;
+}
+
+message ServerConnect {
+    uint64 uid = 1;
+}
+
+message ServerTick {
+    uint32 time = 1;  //时间戳
+    int32 state = 2;  //状态
+}
+
+message FuncInfo {
+    string name    = 1;
+    string In      = 2;
+    string Out     = 3;
+    uint32 msgType = 4;
+}
+
+message ServerLogInCheckReq {
+    uint64 sid  = 1;  //服务器id
+    string name = 2;  //服务器名字
+}
+
+message ServerInfo {
+    uint64 uid             = 1;
+    string name            = 2;
+    repeated ModInfo mInfo = 3;
+}
+
+message ServerList {
+    repeated ServerInfo sInfo = 1;
+}

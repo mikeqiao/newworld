@@ -7,3 +7,14 @@ const (
 	Msg_Push
 	Msg_Handle
 )
+
+type ModState int32
+
+const (
+	Mod_state    ModState = iota
+	Mod_Init              //初始化成功
+	Mod_Running           //正在运行工作
+	Mod_Stopping          //正在停止
+	Mod_Stopped           //已经停止工作
+	Mod_Closed            //关闭销毁
+)

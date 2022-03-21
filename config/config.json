@@ -1,0 +1,29 @@
+{
+  "Version": 1,
+  "LenStackBuf":4096,
+  "LogLevel":"debug",
+  "LogPath": "./",
+  "LogFlag": 0,
+  "SInfo":
+  {
+    "Uid": 2001,
+    "Name":"TestServer"
+  },
+  "Redis":
+  {
+    "Host":"81.70.243.31",
+    "Port":"6379",
+    "Password": "qmBuNengShuo",
+    "MaxIdle":10,
+    "Life":30
+  },
+  "Servers":
+  [
+    {
+      "Uid": 2001,
+      "Name": "Out",
+      "CType": 2,
+      "ListenAddr": "127.0.0.1:7201"
+    }
+  ]
+}

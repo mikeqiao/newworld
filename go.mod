@@ -1,10 +1,10 @@
 module github.com/mikeqiao/newworld
 
-go 1.14
+go 1.18
 
 require (
-	github.com/golang/protobuf v1.4.2
-	github.com/gomodule/redigo v1.8.2
-	github.com/gorilla/mux v1.7.4
-	google.golang.org/protobuf v1.25.0
+	github.com/golang/protobuf v1.5.2
+	github.com/gomodule/redigo v1.8.8
+	github.com/gorilla/mux v1.8.0
+	google.golang.org/protobuf v1.27.1
 )

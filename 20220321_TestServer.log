@@ -1,0 +1,4 @@
+2022-03-21 14:50:52.845148 D:/qm/project/github/newworld/manager/clientmanager.go	line:23:[debug  ] invalid ConnectInterval, reset to 3s
+2022-03-21 14:50:52.845148 D:/qm/project/github/newworld/db/redis/redis.go	line:59:[debug  ] connect redis success
+2022-03-21 14:50:52.845644 D:/qm/project/github/newworld/world.go	line:36:[debug  ] server is start
+2022-03-21 14:51:07.493953 D:/qm/project/github/newworld/world.go	line:41:[release] server closing down (signal: interrupt)

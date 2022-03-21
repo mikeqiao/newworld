@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package gameMod;
+
+import "msg_proto/msg.proto";
+
+service ModTest {
+    rpc FuncTestOne(msg_proto.FuncReq) returns (msg_proto.FuncRes);
+}
