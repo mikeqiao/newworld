@@ -81,6 +81,7 @@ func (n *NetServerManager) Close() {
 }
 
 func (n *NetServerManager) Run() {
+	log.Debug("server running")
 	for _, v := range conf.Conf.Servers {
 		n.NewNetServer(v.Uid, v.Name, v.ListenAddr)
 	}

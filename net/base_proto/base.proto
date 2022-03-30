@@ -9,12 +9,12 @@ message FuncState {
 }
 
 message CallMsgInfo {
-    uint32 fromAgentId = 1;  //消息发送方(等于sessionId)
-    uint64 userId      = 2;  //请求处理的用户数据 key
-    string mod         = 3;  //模块名字
-    string function    = 4;  //请求方法名
-    bytes msgInfo      = 5;  //消息体
-    bytes context      = 6;  //消息上下文消息内容
+    uint32 callType = 1;  //消息发送方(等于sessionId)
+    uint64 userId   = 2;  //请求处理的用户数据 key
+    string mod      = 3;  //模块名字
+    string function = 4;  //请求方法名
+    bytes msgInfo   = 5;  //消息体
+    bytes context   = 6;  //消息上下文消息内容
 }
 message PushMsg {
     repeated uint64 uIdList = 1;  //推送消息的接收者,只有 handlerType == 3 时候才会用到

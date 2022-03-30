@@ -2,6 +2,7 @@ package newworld
 
 import (
 	"fmt"
+	"github.com/mikeqiao/newworld/module"
 	"os"
 	"os/signal"
 
@@ -13,6 +14,7 @@ import (
 type Func interface {
 	Init()
 	Close()
+	GetAllMod() []module.Module
 }
 
 //初始化服务
@@ -30,6 +32,8 @@ func Start(f Func) {
 	//初始化功能设置
 	if nil != f {
 		f.Init()
+		m := f.GetAllMod()
+		RegisterMod(m...)
 	}
 	//开始运行服务程序
 	Run()
@@ -46,6 +50,10 @@ func Start(f Func) {
 	//等待所以线程结束
 	fmt.Println("wait group close")
 
+}
+
+func RegisterMod(mod ...module.Module) {
+	manager.RegisterMod(mod...)
 }
 
 //运行服务

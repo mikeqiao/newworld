@@ -9,15 +9,21 @@ import (
 	"github.com/mikeqiao/newworld/net"
 )
 
-type Mod_Name struct {
+type Mod_Root struct {
+	DefaultModName ModName
 }
 
-func Route_To_Mod(modName, funcName string, data *net.UserData, req []byte, processor net.Processor) (err error) {
-	switch modName {
+func (m *Mod_Root) Route(data *net.CallData) (err error) {
+	switch data.Mod {
 	case "ModTestOne":
-		err = ModName_Handler(funcName, data, req, processor)
+		err = m.DefaultModName.Route_Room(data)
 	default:
 		err = errors.New("nil function")
 	}
 	return
+}
+
+//自动生成
+type ModName interface {
+	Route_Room(*net.CallData) (err error)
 }

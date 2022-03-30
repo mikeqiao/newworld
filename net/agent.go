@@ -29,7 +29,9 @@ type TcpAgent struct {
 	UnCheckLifetime int64     //链接未验证有效期时间（秒）
 	TickLifetime    int64     //没心跳断开时间（秒）
 	//基础属性
-	UId       uint64      //本端local uid (local IP,port 的唯一标识符)
+	Name      string      //所在服务的名字
+	UId       uint64      //远端 uid (remote IP,port 的唯一标识符)
+	LocalUId  uint64      //本端 uid (local IP,port 的唯一标识符)
 	conn      Conn        //网络连接
 	closeSign chan bool   //关闭通知 chan
 	WriteChan chan []byte //待处理发送消息 chan
@@ -43,7 +45,7 @@ type TcpAgent struct {
 	userData interface{} //和agent 绑定的相关 数据
 }
 
-func (a *TcpAgent) Init(conn *TCPConn, tp Processor, writeNum uint32, unCheckLifetime, tickLifetime int64, c chan uint64) {
+func (a *TcpAgent) Init(conn *TCPConn, tp Processor, writeNum uint32, unCheckLifetime, tickLifetime int64, c chan uint64, name string, localUid uint64) {
 	a.conn = conn
 	a.Processor = tp
 	a.PendingWriteNum = Default_WriteNum
@@ -63,6 +65,8 @@ func (a *TcpAgent) Init(conn *TCPConn, tp Processor, writeNum uint32, unCheckLif
 		a.TickLifetime = tickLifetime
 	}
 	a.agentState = Agent_Init
+	a.Name = name
+	a.LocalUId = localUid
 }
 
 func (a *TcpAgent) GetRemoteAddr() string {
@@ -70,6 +74,13 @@ func (a *TcpAgent) GetRemoteAddr() string {
 		return ""
 	}
 	return a.conn.RemoteAddr().String()
+}
+
+func (a *TcpAgent) GetLocalAddr() string {
+	if nil == a.conn {
+		return ""
+	}
+	return a.conn.LocalAddr().String()
 }
 
 func (a *TcpAgent) SetUID(uid uint64) {
@@ -98,6 +109,8 @@ func (a *TcpAgent) Start(wg *sync.WaitGroup) {
 	a.tick = time.Now().Unix()
 	go a.Run(wg)
 	go a.Update(wg)
+	//发送登陆消息
+	a.SendLogInCheck()
 }
 
 func (a *TcpAgent) Run(wg *sync.WaitGroup) {
@@ -131,10 +144,12 @@ func (a *TcpAgent) Update(wg *sync.WaitGroup) {
 			if isClosed {
 				goto Loop
 			}
-			err := a.conn.DoWrite(msg)
-			if err != nil {
-				log.Error("conn.DoWrite err:%v", err)
-				goto Loop
+			if nil != msg {
+				err := a.conn.DoWrite(msg)
+				if err != nil {
+					log.Error("conn.DoWrite err:%v", err)
+					goto Loop
+				}
 			}
 		case <-a.closeSign:
 			if a.agentState != Agent_Closing {
@@ -212,7 +227,16 @@ func (a *TcpAgent) SendTick() {
 	u.Mod = common.Mod_Base
 	u.Function = common.BaseMod_AgentTick
 	a.SendMsg(u, t)
+}
 
+func (a *TcpAgent) SendLogInCheck() {
+	t := new(base_proto.ServerLogInCheckReq)
+	t.Name = a.Name
+	t.Sid = a.LocalUId
+	u := new(CallData)
+	u.Mod = common.Mod_Base
+	u.Function = common.BaseMod_AgentCheck
+	a.SendMsg(u, t)
 }
 
 func (a *TcpAgent) SendMsg(u *CallData, msg interface{}) {

@@ -1,6 +1,8 @@
 package manager
 
 import (
+	"github.com/mikeqiao/newworld/log"
+	"github.com/mikeqiao/newworld/module"
 	"sync"
 
 	"github.com/mikeqiao/newworld/db/redis"
@@ -25,15 +27,6 @@ func Init() {
 	ClientManager = new(NetClientManager)
 	ClientManager.Init()
 	redis.Init()
-	Register()
-}
-
-func Register() {
-	//DefaultProcessor.SetHandler("ServerConnectOK", &proto.ServerConnect{}, HandleServerConnectOK)
-	//DefaultProcessor.SetHandler("ServerLoginRQ", &proto.ServerLogInReq{}, HandleServerLoginRQ)
-	//DefaultProcessor.SetHandler("ServerLoginRS", &proto.ServerLogInRes{}, HandleServerLoginRS)
-	//DefaultProcessor.SetHandler("ServerTick", &proto.ServerTick{}, HandleServerTick)
-	//DefaultProcessor.SetHandler("ServerTickBack", &proto.ServerTick{}, HandleServerTickBack)
 }
 
 func Run() {
@@ -52,4 +45,11 @@ func Close() {
 		redis.R.OnClose()
 	}
 	wg.Wait()
+}
+
+func RegisterMod(mod ...module.Module) {
+	err := ModManager.RegisterMod(mod...)
+	if nil != err {
+		log.Fatal("err:%v", err)
+	}
 }

@@ -5,7 +5,8 @@
 package common
 
 const (
-	Mod_Base = "BaseModule"
+	Mod_Base        = "BaseModule"
+	ModRoot_Default = "ModRootDefault"
 )
 
 const (

@@ -41,8 +41,7 @@ func (n *NetClientManager) NewClient(uid uint64, name, addr string) {
 	newClient.Addr = addr
 	newClient.Processor = DefaultProcessor
 	newClient.CreateAgent = CreateAgent
-	newClient.Start()
-	go newClient.Run(n.wg)
+	go newClient.Start(n.wg)
 	n.CList[uid] = newClient
 }
 
@@ -51,6 +50,7 @@ func (n *NetClientManager) Run() {
 	for _, v := range conf.Conf.Clients {
 		n.NewClient(v.Uid, v.Name, v.ConnectAddr)
 	}
+	log.Debug("client Run end")
 }
 
 func (n *NetClientManager) Close() {

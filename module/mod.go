@@ -1,45 +1,97 @@
 package module
 
 import (
-	"github.com/mikeqiao/newworld/common"
-	"github.com/mikeqiao/newworld/data"
+	"errors"
+	"fmt"
+	"github.com/mikeqiao/newworld/log"
 	"github.com/mikeqiao/newworld/net"
 	"sync"
-
-	"github.com/mikeqiao/newworld/config"
 )
 
-type Handler func(net.UserData, []byte, data.MemoryData) (err error)
+type Handler func(uData *net.CallData) (err error)
 
-type Mod struct {
-	Name        string                  //mod type
-	Uid         uint64                  //实例化的 modId
-	Version     uint32                  //当前 mod 的版本
-	FuncList    map[string]*ServiceFunc //mod  提供的服务列表
-	modCloseSig chan bool               //mod 模块关闭信号
-	ModState    common.ModState         //mod 的状态
-	roomList    map[uint64]*GORoom      //模块的房间数量，每个房间一个 go 协程
-	MaxCallLen  uint32                  //请求队列长度
+type Module interface {
+	Register(string, Handler) error
+	GetHandler(string) (Handler, error)
+	GetName() string
+	GetKey() uint64
+	GetCallLen() uint32
 }
 
-type ServiceFunc func([]byte, *net.UserData, data.MemoryData)
-
-func (m *Mod) Init() {
-	m.Version = config.Conf.Version
-	m.FuncList = make(map[string]*ServiceFunc)
-	m.roomList = make(map[uint64]*GORoom)
-	m.modCloseSig = make(chan bool, 1)
-	m.ModState = common.Mod_Init
+type ModCluster struct {
+	lock    sync.RWMutex
+	ModName string
+	ModRoom map[uint64]*GORoom
+	wg      *sync.WaitGroup
 }
 
-func (m *Mod) Start(wg *sync.WaitGroup) {
-
+func (m *ModCluster) Init(name string) {
+	m.ModName = name
+	m.wg = new(sync.WaitGroup)
+	m.ModRoom = make(map[uint64]*GORoom)
 }
 
-func (m *Mod) Route(funcName string, uData *net.UserData, msg interface{}, processor net.Processor) {
-
+//添加一个房间协程
+func (m *ModCluster) AddRoom(mod Module) error {
+	if nil == mod {
+		return errors.New("nil mod Data")
+	}
+	if mod.GetName() != m.ModName {
+		return errors.New("not same module name")
+	}
+	key := mod.GetKey()
+	m.lock.Lock()
+	r, ok := m.ModRoom[key]
+	if ok {
+		log.Debug("room :%v already existed", key)
+	} else {
+		r = new(GORoom)
+		r.Init(mod.GetName(), key, mod.GetCallLen(), mod)
+		m.ModRoom[key] = r
+	}
+	m.lock.Unlock()
+	if nil != r && !r.Working() {
+		r.Start(m.wg)
+	}
+	return nil
 }
 
-func (m *Mod) Close() {
+//直接关闭房间并且删除
+func (m *ModCluster) DeleteRoom(key uint64) error {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+	r, ok := m.ModRoom[key]
+	if !ok {
+		return errors.New(fmt.Sprintf("no this key:%v room", key))
+	}
+	if nil != r {
+		r.Close()
+	}
+	delete(m.ModRoom, key)
+	return nil
+}
 
+//只关闭房间，数据保留一段时间
+func (m *ModCluster) CloseRoom(key uint64) error {
+	m.lock.RLock()
+	r, ok := m.ModRoom[key]
+	m.lock.RUnlock()
+	if !ok {
+		return errors.New(fmt.Sprintf("no this key:%v room", key))
+	}
+	if nil != r {
+		r.Close()
+	}
+	return nil
+}
+
+func (m *ModCluster) Close() {
+	m.lock.Lock()
+	for _, v := range m.ModRoom {
+		if nil != v {
+			v.Close()
+		}
+	}
+	m.lock.Unlock()
+	m.wg.Wait()
 }

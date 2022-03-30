@@ -9,14 +9,13 @@ import (
 var DefaultProcessor *p.Processor
 var ConnManager *NetConnManager
 
-func CreateAgent(conn *net.TCPConn, tp net.Processor, writeNum uint32, unCheckLifetime, tickLifetime int64) *net.TcpAgent {
+func CreateAgent(conn *net.TCPConn, tp net.Processor, writeNum uint32, unCheckLifetime, tickLifetime int64, name string, localUid uint64) *net.TcpAgent {
 	if nil == ConnManager {
 		return nil
 	}
 	a := new(net.TcpAgent)
-	a.Init(conn, tp, writeNum, unCheckLifetime, tickLifetime, ConnManager.CloseUid)
+	a.Init(conn, tp, writeNum, unCheckLifetime, tickLifetime, ConnManager.CloseUid, name, localUid)
 	a.Start(ConnManager.wg)
-	//	ConnManager.AddAgent(a)
 	return a
 }
 

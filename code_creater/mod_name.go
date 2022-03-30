@@ -6,21 +6,22 @@ package code_creater
 
 import (
 	"errors"
+	"fmt"
 	"github.com/mikeqiao/newworld/code_creater/msg_proto"
-	"github.com/mikeqiao/newworld/data"
-	mod "github.com/mikeqiao/newworld/module"
+	"github.com/mikeqiao/newworld/common"
 	"github.com/mikeqiao/newworld/net"
-	processor "github.com/mikeqiao/newworld/net/processor/protobuff"
 	"sync"
 )
 
-type ModName struct {
+var DefaultModName *ModNameRoomManager
+
+type ModNameRoomManager struct {
 	name     string
 	lock     sync.RWMutex
-	roomList map[uint64]*mod.GORoom
+	roomList map[uint64]*ModNameRoom
 }
 
-func (m *ModName) GetRoom(key uint64) *mod.GORoom {
+func (m *ModNameRoomManager) GetRoom(key uint64) *ModNameRoom {
 	m.lock.RLock()
 	defer m.lock.Unlock()
 	v, ok := m.roomList[key]
@@ -29,29 +30,72 @@ func (m *ModName) GetRoom(key uint64) *mod.GORoom {
 	}
 	return nil
 }
+func (m *ModNameRoomManager) Route(data *net.CallData) (err error) {
+	room := m.GetRoom(data.Uid)
+	if nil == room {
+		return errors.New(fmt.Sprintf("no this mod room:%v", data.Uid))
+	}
+	return room.Call(data)
+}
 
-func (m *ModName) ModName_Handler(funcName string, data net.UserData, req []byte) (err error) {
-	switch funcName {
+type ModNameRoom_Type interface {
+	NameHandler_One(*msg_proto.FuncReq) *msg_proto.FuncRes
+	NameHandler_Two(*msg_proto.FuncReq) *msg_proto.FuncRes
+	ModName_Handler(*net.CallData) (err error)
+}
+type ModNameRoom struct {
+	RoomId       uint64
+	ModName      string
+	RoomState    common.ModState    //room 的状态
+	CallChan     chan *net.CallData //请求的队列
+	roomCloseSig chan bool          //room 模块关闭信号
+	Data         *msg_proto.FuncReq
+}
+
+func (m *ModNameRoom) ModName_Handler(data *net.CallData) (err error) {
+	if nil == data {
+		return errors.New("nil CallData")
+	}
+	switch data.Function {
 	case "FuncTestOne":
 		msg := new(msg_proto.FuncReq)
-		err := processor.UnMarshalMsg(msg, req)
+		err := data.GetReqMsg(msg)
 		if nil != err {
 			return err
 		}
-		fn := NameHandler
+		res := m.NameHandler_One(data)
+		err = data.CallBack(res)
+		return err
 	default:
 		err = errors.New("nil function")
 	}
 
-	room := m.GetRoom(data.UId)
-	if nil == room {
-		return
-	}
-	room.Call(fn)
 	return
 }
 
-func NameHandler(uData net.UserData, msg *msg_proto.FuncReq, Data data.MemoryData) (err error) {
+func (r *ModNameRoom) Working() bool {
+	if common.Mod_Running == r.RoomState {
+		return true
+	}
+	return false
+}
 
+func (c *ModNameRoom) Call(data *net.CallData) error {
+	if nil == data {
+		return errors.New("nil CallData")
+	}
+	if len(c.CallChan) >= cap(c.CallChan) {
+		return errors.New("full CallChan")
+	}
+	c.CallChan <- data
+	return nil
+}
+
+//手动添加
+func (m *ModNameRoom) NameHandler_One(data *net.CallData) (res *msg_proto.FuncRes) {
+
+	return
+}
+func (m *ModNameRoom) NameHandler_Two(data *net.CallData) (res *msg_proto.FuncRes) {
 	return
 }

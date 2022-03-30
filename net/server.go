@@ -16,7 +16,7 @@ type TCPServer struct {
 	PendingWriteNum uint32       //配置 chan 容量
 	//agent
 	Processor   Processor
-	CreateAgent func(*TCPConn, Processor, uint32, int64, int64) *TcpAgent // 代理
+	CreateAgent func(*TCPConn, Processor, uint32, int64, int64, string, uint64) *TcpAgent // 代理
 }
 
 func (t *TCPServer) init() {
@@ -56,7 +56,7 @@ func (t *TCPServer) run(wg *sync.WaitGroup) {
 		tempDelay = 0
 		//创建了新的链接  创建 agent 加入 conn管理
 		tcpConn := newTCPConn(conn)
-		t.CreateAgent(tcpConn, t.Processor, t.PendingWriteNum, 0, 0)
+		t.CreateAgent(tcpConn, t.Processor, t.PendingWriteNum, 0, 0, t.Name)
 	}
 Loop:
 	wg.Done()

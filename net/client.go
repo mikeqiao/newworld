@@ -14,9 +14,9 @@ type TCPClient struct {
 	UId             uint64
 	Addr            string // 地址
 	Name            string
-	ConnectInterval time.Duration                                             // 请求链接的间隔
-	CreateAgent     func(*TCPConn, Processor, uint32, int64, int64) *TcpAgent // 代理
-	Closed          bool                                                      // 关闭标识符
+	ConnectInterval time.Duration                                                             // 请求链接的间隔
+	CreateAgent     func(*TCPConn, Processor, uint32, int64, int64, string, uint64) *TcpAgent // 代理
+	Closed          bool                                                                      // 关闭标识符
 	Working         bool
 	Processor       Processor
 	CloseChannel    chan uint64
@@ -62,7 +62,7 @@ func (t *TCPClient) connect() {
 		return
 	}
 	tcpConn := newTCPConn(conn)
-	agent := t.CreateAgent(tcpConn, t.Processor, t.PendingWriteNum, 0, 0)
+	agent := t.CreateAgent(tcpConn, t.Processor, t.PendingWriteNum, 0, 0, t.Name)
 	t.Agent = agent
 	agent.SetUID(t.UId)
 	log.Debug("client connect ok:%v", t.Addr)
@@ -72,9 +72,10 @@ func (t *TCPClient) connect() {
 	//	t.Processor.Handle("ServerConnectOK", tMsg, &CallData{Uid: t.UId, Agent: t.Agent})
 }
 
-func (t *TCPClient) Start() {
+func (t *TCPClient) Start(wg *sync.WaitGroup) {
 	t.init()
 	t.connect()
+	t.Run(wg)
 }
 
 func (t *TCPClient) ReStart() {

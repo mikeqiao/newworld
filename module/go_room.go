@@ -6,8 +6,10 @@ package module
 
 import (
 	"github.com/mikeqiao/newworld/common"
-	"github.com/mikeqiao/newworld/data"
+	"github.com/mikeqiao/newworld/config"
 	"github.com/mikeqiao/newworld/log"
+	"github.com/mikeqiao/newworld/net"
+	"runtime"
 	"sync"
 )
 
@@ -15,17 +17,17 @@ type GORoom struct {
 	RoomId       uint64
 	ModName      string
 	RoomState    common.ModState //room 的状态
-	BindData     data.MemoryData //绑定的相关数据模块
-	CallChan     chan *CallInfo  //请求的队列
-	roomCloseSig chan bool       //room 模块关闭信号
+	Mod          Module
+	CallChan     chan *net.CallData //请求的队列
+	roomCloseSig chan bool          //room 模块关闭信号
 }
 
-func (r *GORoom) Init(modName string, roomId uint64, callLen uint32, bindData data.MemoryData) {
+func (r *GORoom) Init(modName string, roomId uint64, callLen uint32, mod Module) {
 	r.ModName = modName
-	r.RoomId = r.RoomId
-	r.CallChan = make(chan *CallInfo, callLen)
+	r.RoomId = roomId
+	r.CallChan = make(chan *net.CallData, callLen)
 	r.roomCloseSig = make(chan bool, 1)
-	r.BindData = bindData
+	r.Mod = mod
 	r.RoomState = common.Mod_Init
 }
 
@@ -56,8 +58,30 @@ Loop:
 	wg.Done()
 }
 
-func (r *GORoom) ExecFunc(call *CallInfo) {
-	//call.CF()
+func (r *GORoom) ExecFunc(call *net.CallData) {
+	if nil != r.Mod {
+		h, err := r.Mod.GetHandler(call.Function)
+		if nil != err || nil == h {
+			log.Error("GetHandler err:%v", err)
+			return
+		}
+		defer func() {
+			if r := recover(); r != nil {
+				if config.Conf.LenStackBuf > 0 {
+					buf := make([]byte, int32(config.Conf.LenStackBuf))
+					l := runtime.Stack(buf, false)
+					log.Error("%v: %s", r, buf[:l])
+				} else {
+					log.Error("%v", r)
+				}
+			}
+		}()
+		err = h(call)
+		if nil != err {
+			log.Error("run handler err:%v", err)
+			return
+		}
+	}
 }
 
 func (r *GORoom) Working() bool {
@@ -67,6 +91,13 @@ func (r *GORoom) Working() bool {
 	return false
 }
 
-func (r *GORoom) Call(function Handler) {
+func (c *GORoom) Call(data *net.CallData) {
+	if nil == data {
+		return
+	}
+	c.CallChan <- data
+}
 
+func (c *GORoom) Close() {
+	c.roomCloseSig <- true
 }

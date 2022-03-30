@@ -33,6 +33,7 @@ func (p *Processor) Unmarshal(a *net.TcpAgent, data []byte) error {
 		uData.Mod = msg.Mod
 		uData.Function = msg.Function
 		uData.Req = msg.MsgInfo
+		uData.CallType = msg.CallType
 		uData.Context = msg.Context
 		return p.Route(uData)
 	}
@@ -55,6 +56,7 @@ func (p *Processor) Marshal(u *net.CallData, in interface{}) ([]byte, error) {
 	msg.Function = u.Function
 	msg.UserId = u.Uid
 	msg.Context = u.Context
+	msg.CallType = u.CallType
 	data, err := proto.Marshal(in.(proto.Message))
 	if nil != err {
 		log.Error("err:%v", err)
