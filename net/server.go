@@ -56,7 +56,7 @@ func (t *TCPServer) run(wg *sync.WaitGroup) {
 		tempDelay = 0
 		//创建了新的链接  创建 agent 加入 conn管理
 		tcpConn := newTCPConn(conn)
-		t.CreateAgent(tcpConn, t.Processor, t.PendingWriteNum, 0, 0, t.Name)
+		t.CreateAgent(tcpConn, t.Processor, t.PendingWriteNum, 0, 0, t.Name, t.UId)
 	}
 Loop:
 	wg.Done()

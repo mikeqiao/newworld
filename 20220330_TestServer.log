@@ -1,0 +1,9 @@
+2022-03-30 17:46:55.452286 D:/qm/project/github/newworld/manager/clientmanager.go	line:23:[debug  ] invalid ConnectInterval, reset to 3s
+2022-03-30 17:46:55.452286 D:/qm/project/github/newworld/db/redis/redis.go	line:59:[debug  ] connect redis success
+2022-03-30 17:46:55.452286 D:/qm/project/github/newworld/manager/clientmanager.go	line:53:[debug  ] client Run end
+2022-03-30 17:46:55.452286 D:/qm/project/github/newworld/manager/smanager.go	line:84:[debug  ] server running
+2022-03-30 17:46:55.452782 D:/qm/project/github/newworld/net/client.go	line:31:[debug  ] invalid ConnectInterval, reset to 3s
+2022-03-30 17:46:55.453277 D:/qm/project/github/newworld/net/server.go	line:30:[debug  ] serve Listen:127.0.0.1:7201
+2022-03-30 17:46:55.453277 D:/qm/project/github/newworld/world.go	line:40:[debug  ] server is start
+2022-03-30 17:46:57.483740 D:/qm/project/github/newworld/net/client.go	line:47:[release] connect to 127.0.0.1:7202 error: dial tcp 127.0.0.1:7202: connectex: No connection could be made because the target machine actively refused it.
+2022-03-30 17:47:01.163560 D:/qm/project/github/newworld/world.go	line:45:[release] server closing down (signal: interrupt)

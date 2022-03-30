@@ -62,7 +62,7 @@ func (t *TCPClient) connect() {
 		return
 	}
 	tcpConn := newTCPConn(conn)
-	agent := t.CreateAgent(tcpConn, t.Processor, t.PendingWriteNum, 0, 0, t.Name)
+	agent := t.CreateAgent(tcpConn, t.Processor, t.PendingWriteNum, 0, 0, t.Name, t.UId)
 	t.Agent = agent
 	agent.SetUID(t.UId)
 	log.Debug("client connect ok:%v", t.Addr)
