@@ -141,7 +141,7 @@ func (a *TcpAgent) Update(wg *sync.WaitGroup) {
 	for {
 		select {
 		case msg, isClosed := <-a.WriteChan:
-			if isClosed {
+			if !isClosed {
 				goto Loop
 			}
 			if nil != msg {
