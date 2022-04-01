@@ -150,7 +150,6 @@ func (a *TcpAgent) Update(wg *sync.WaitGroup) {
 					log.Error("conn.DoWrite err:%v", err)
 					goto Loop
 				}
-				log.Debug("conn.DoWrite data:%v", msg)
 			}
 		case <-a.closeSign:
 			if a.agentState != Agent_Closing {
