@@ -95,3 +95,15 @@ func (m *ModCluster) Close() {
 	m.lock.Unlock()
 	m.wg.Wait()
 }
+func (m *ModCluster) Route(u *net.CallData) error {
+	m.lock.RLock()
+	r, ok := m.ModRoom[u.Uid]
+	m.lock.RUnlock()
+	if !ok {
+		return errors.New(fmt.Sprintf("no this key:%v room", u.Uid))
+	}
+	if nil != r {
+		r.Call(u)
+	}
+	return nil
+}

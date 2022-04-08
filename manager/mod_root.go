@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/mikeqiao/newworld/common"
 	"github.com/mikeqiao/newworld/module"
+	"github.com/mikeqiao/newworld/net"
 )
 
 type DefaultModRoot struct {
@@ -46,4 +47,15 @@ func (b *DefaultModRoot) GetModCluster(modName string) (*module.ModCluster, erro
 		return v, nil
 	}
 	return nil, errors.New(fmt.Sprintf("no this modCluster named:%v", modName))
+}
+
+func (b *DefaultModRoot) Route(u *net.CallData) error {
+	if nil == u {
+		return errors.New("nil Call net.UserData")
+	}
+	if v, ok := b.mList[u.Mod]; ok {
+		return errors.New("same key module already registered")
+	} else {
+		return v.Route(u)
+	}
 }
