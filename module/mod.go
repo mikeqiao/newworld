@@ -11,7 +11,6 @@ import (
 type Handler func(uData *net.CallData) (err error)
 
 type Module interface {
-	Register(string, Handler) error
 	GetHandler(string) (Handler, error)
 	GetName() string
 	GetKey() uint64

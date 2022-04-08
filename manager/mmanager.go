@@ -38,3 +38,36 @@ func (m *MManager) RegisterMod(mod ...module.Module) error {
 	}
 	return m.ModRoot.Register(mod...)
 }
+
+func (m *MManager) GetMod(name string) (*module.ModCluster, error) {
+	if nil == m.ModRoot {
+		err := errors.New("nil Module Root")
+		log.Error("err:%v", err)
+		return nil, err
+	}
+	return m.ModRoot.GetModCluster(name)
+}
+
+func GetNewRoom(mod module.Module) error {
+	if nil == ModManager {
+		log.Error("nil Module Root")
+		return errors.New("nil Module Root")
+	}
+	cluster, err := ModManager.GetMod(mod.GetName())
+	if nil != err {
+		return err
+	}
+	return cluster.AddRoom(mod)
+}
+
+func CloseRoom(mod module.Module) error {
+	if nil == ModManager {
+		log.Error("nil Module Root")
+		return errors.New("nil Module Root")
+	}
+	cluster, err := ModManager.GetMod(mod.GetName())
+	if nil != err {
+		return err
+	}
+	return cluster.CloseRoom(mod.GetKey())
+}

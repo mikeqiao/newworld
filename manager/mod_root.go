@@ -6,6 +6,7 @@ package manager
 
 import (
 	"errors"
+	"fmt"
 	"github.com/mikeqiao/newworld/common"
 	"github.com/mikeqiao/newworld/module"
 )
@@ -39,4 +40,10 @@ func (b *DefaultModRoot) Register(mod ...module.Module) error {
 		b.mList[v.GetName()] = modCluster
 	}
 	return nil
+}
+func (b *DefaultModRoot) GetModCluster(modName string) (*module.ModCluster, error) {
+	if v, ok := b.mList[modName]; ok {
+		return v, nil
+	}
+	return nil, errors.New(fmt.Sprintf("no this modCluster named:%v", modName))
 }
