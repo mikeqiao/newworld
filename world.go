@@ -24,7 +24,7 @@ func Start(m ...module.Module) {
 	//初始化基本设置
 	Init()
 	//初始化功能设置
-	RegisterMod(m...)
+	InitMod(m...)
 
 	//开始运行服务程序
 	Run()
@@ -41,8 +41,18 @@ func Start(m ...module.Module) {
 
 }
 
-func RegisterMod(mod ...module.Module) {
-	manager.RegisterMod(mod...)
+func RegisterMod(modName ...string) {
+	manager.RegisterMod(modName...)
+}
+
+func InitMod(mod ...module.Module) {
+	for _, v := range mod {
+		if nil == v {
+			log.Fatal("nil mod")
+			return
+		}
+		v.Init()
+	}
 }
 
 //运行服务

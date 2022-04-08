@@ -15,6 +15,7 @@ type Module interface {
 	GetName() string
 	GetKey() uint64
 	GetCallLen() uint32
+	Init()
 }
 
 type ModCluster struct {

@@ -27,17 +27,17 @@ func (b *DefaultModRoot) GetName() string {
 	return b.ModeName
 }
 
-func (b *DefaultModRoot) Register(mod ...module.Module) error {
-	for _, v := range mod {
-		if nil == v {
+func (b *DefaultModRoot) Register(modName ...string) error {
+	for _, v := range modName {
+		if "" == v {
 			return errors.New("nil module")
 		}
-		if _, ok := b.mList[v.GetName()]; ok {
+		if _, ok := b.mList[v]; ok {
 			return errors.New("same key module already registered")
 		}
 		modCluster := new(module.ModCluster)
-		modCluster.Init(v.GetName())
-		b.mList[v.GetName()] = modCluster
+		modCluster.Init(v)
+		b.mList[v] = modCluster
 	}
 	return nil
 }

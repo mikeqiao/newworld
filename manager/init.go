@@ -2,7 +2,6 @@ package manager
 
 import (
 	"github.com/mikeqiao/newworld/log"
-	"github.com/mikeqiao/newworld/module"
 	"sync"
 
 	"github.com/mikeqiao/newworld/db/redis"
@@ -47,8 +46,8 @@ func Close() {
 	wg.Wait()
 }
 
-func RegisterMod(mod ...module.Module) {
-	err := ModManager.RegisterMod(mod...)
+func RegisterMod(modName ...string) {
+	err := ModManager.RegisterMod(modName...)
 	if nil != err {
 		log.Fatal("err:%v", err)
 	}

@@ -31,12 +31,12 @@ func (m *MManager) Run() {
 func (m *MManager) Close() {
 }
 
-func (m *MManager) RegisterMod(mod ...module.Module) error {
+func (m *MManager) RegisterMod(modName ...string) error {
 	if nil == m.ModRoot {
 		err := errors.New("nil Module Root")
 		log.Fatal("err:%v", err)
 	}
-	return m.ModRoot.Register(mod...)
+	return m.ModRoot.Register(modName...)
 }
 
 func (m *MManager) GetMod(name string) (*module.ModCluster, error) {
