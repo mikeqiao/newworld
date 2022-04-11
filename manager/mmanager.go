@@ -31,12 +31,12 @@ func (m *MManager) Run() {
 func (m *MManager) Close() {
 }
 
-func (m *MManager) RegisterMod(modName ...string) error {
+func (m *MManager) RegisterMod(modName []string, room *module.GORoom) error {
 	if nil == m.ModRoot {
 		err := errors.New("nil Module Root")
 		log.Fatal("err:%v", err)
 	}
-	return m.ModRoot.Register(modName...)
+	return m.ModRoot.Register(modName, room)
 }
 
 func (m *MManager) GetMod(name string) (*module.ModCluster, error) {
@@ -57,7 +57,7 @@ func GetNewRoom(mod module.Module) error {
 	if nil != err {
 		return err
 	}
-	return cluster.AddRoom(mod)
+	return cluster.AddNewRoom(mod)
 }
 
 func CloseRoom(mod module.Module) error {

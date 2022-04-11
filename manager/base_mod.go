@@ -8,6 +8,7 @@ import (
 	"errors"
 	"github.com/mikeqiao/newworld/common"
 	"github.com/mikeqiao/newworld/log"
+	"github.com/mikeqiao/newworld/module"
 	"github.com/mikeqiao/newworld/net"
 	"github.com/mikeqiao/newworld/net/base_proto"
 	"time"
@@ -60,8 +61,18 @@ func BaseModAgentCheck(call *net.CallData) error {
 	// 消息的发送者
 	if nil != call && nil != call.Agent {
 		log.Debug("server:%v, tick:%v", call.Agent.GetRemoteAddr(), m.Sid)
-		call.Agent.Check(m.Sid)
+		call.Agent.Check(m.Sid, m.ModList)
 		ConnManager.AddAgent(call.Agent)
+		//添加 agent mod
+		agentMod := new(AgentMod)
+		agentMod.Init()
+		agentMod.SetData(call.Agent, m.Sid)
+		room := new(module.GORoom)
+		room.Init(agentMod.Name, agentMod.Uid, agentMod.CallLen, agentMod)
+		err := ModManager.RegisterMod(m.ModList, room)
+		if nil != err {
+			log.Error("BaseModAgentCheck err:%v", err)
+		}
 	}
 	return nil
 }

@@ -32,12 +32,9 @@ func (m *ModCluster) Init(name string) {
 }
 
 //添加一个房间协程
-func (m *ModCluster) AddRoom(mod Module) error {
+func (m *ModCluster) AddNewRoom(mod Module) error {
 	if nil == mod {
 		return errors.New("nil mod Data")
-	}
-	if mod.GetName() != m.ModName {
-		return errors.New("not same module name")
 	}
 	key := mod.GetKey()
 	m.lock.Lock()
@@ -52,6 +49,24 @@ func (m *ModCluster) AddRoom(mod Module) error {
 	m.lock.Unlock()
 	if nil != r && !r.Working() {
 		r.Start(m.wg)
+	}
+	return nil
+}
+func (m *ModCluster) AddRoom(room *GORoom) error {
+	if nil == room {
+		return errors.New("nil room Data")
+	}
+	key := room.RoomId
+	m.lock.Lock()
+	_, ok := m.ModRoom[key]
+	if ok {
+		log.Debug("room :%v already existed", key)
+	} else {
+		m.ModRoom[key] = room
+	}
+	m.lock.Unlock()
+	if nil != room && !room.Working() {
+		room.Start(m.wg)
 	}
 	return nil
 }
@@ -97,7 +112,7 @@ func (m *ModCluster) Close() {
 }
 func (m *ModCluster) Route(u *net.CallData) error {
 	m.lock.RLock()
-	r, ok := m.ModRoom[u.Uid]
+	r, ok := m.ModRoom[u.RoomId]
 	m.lock.RUnlock()
 	if !ok {
 		return errors.New(fmt.Sprintf("no this key:%v room", u.Uid))

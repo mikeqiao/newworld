@@ -2,6 +2,7 @@ package newworld
 
 import (
 	"fmt"
+	"github.com/mikeqiao/newworld/common"
 	"github.com/mikeqiao/newworld/module"
 	"os"
 	"os/signal"
@@ -19,10 +20,14 @@ func Init() {
 
 }
 
+var modList []string
+
 //开始服务
 func Start(m ...module.Module) {
 	//初始化基本设置
 	Init()
+	RegisterMod(common.Mod_Agent)
+	AddMod(modList)
 	//初始化功能设置
 	InitMod(m...)
 
@@ -42,7 +47,11 @@ func Start(m ...module.Module) {
 }
 
 func RegisterMod(modName ...string) {
-	manager.RegisterMod(modName...)
+	modList = append(modList, modName...)
+}
+
+func AddMod(modName []string) {
+	manager.RegisterMod(modName)
 }
 
 func InitMod(mod ...module.Module) {

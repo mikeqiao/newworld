@@ -47,8 +47,9 @@ message FuncInfo {
 }
 
 message ServerLogInCheckReq {
-    uint64 sid  = 1;  //服务器id
-    string name = 2;  //服务器名字
+    uint64 sid              = 1;  //服务器id
+    string name             = 2;  //服务器名字
+    repeated string modList = 3;  //服务器的mod列表
 }
 
 message ServerInfo {

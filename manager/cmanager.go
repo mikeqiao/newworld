@@ -41,7 +41,6 @@ func (n *NetConnManager) AddAgent(agent *net.TcpAgent) {
 	n.mutex.Lock()
 	n.CList[agent.UId] = agent
 	n.mutex.Unlock()
-
 }
 
 func (n *NetConnManager) Run(wg *sync.WaitGroup) {

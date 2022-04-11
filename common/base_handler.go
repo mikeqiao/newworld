@@ -7,6 +7,7 @@ package common
 const (
 	Mod_Base        = "BaseModule"
 	ModRoot_Default = "ModRootDefault"
+	Mod_Agent       = "AgentModule"
 )
 
 const (

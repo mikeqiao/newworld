@@ -37,10 +37,10 @@ type TcpAgent struct {
 	WriteChan chan []byte //待处理发送消息 chan
 
 	//生效控制类属性
-	startTime  int64 //链接开始的时间戳
-	tick       int64 //上次心跳的时间戳
-	agentState int32 //agent 状态
-
+	startTime  int64    //链接开始的时间戳
+	tick       int64    //上次心跳的时间戳
+	agentState int32    //agent 状态
+	RemoteMod  []string //连接对方提供的 mod 模块
 	//附加属性
 	userData interface{} //和agent 绑定的相关 数据
 }
@@ -87,8 +87,9 @@ func (a *TcpAgent) SetUID(uid uint64) {
 	a.UId = uid
 }
 
-func (a *TcpAgent) Check(uid uint64) {
+func (a *TcpAgent) Check(uid uint64, modList []string) {
 	a.UId = uid
+	a.RemoteMod = modList
 	a.agentState = Agent_Running
 }
 
@@ -240,6 +241,7 @@ func (a *TcpAgent) SendLogInCheck() {
 }
 
 func (a *TcpAgent) SendMsg(u *CallData, msg interface{}) {
-
-	a.WriteMsg(u, msg)
+	if a.agentState != Agent_Closing && a.agentState != Agent_Closed {
+		a.WriteMsg(u, msg)
+	}
 }

@@ -46,8 +46,8 @@ func Close() {
 	wg.Wait()
 }
 
-func RegisterMod(modName ...string) {
-	err := ModManager.RegisterMod(modName...)
+func RegisterMod(modName []string) {
+	err := ModManager.RegisterMod(modName)
 	if nil != err {
 		log.Fatal("err:%v", err)
 	}

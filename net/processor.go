@@ -7,9 +7,10 @@ import (
 )
 
 type CallData struct {
-	Mod      string    //请求的 mod 模块 key
-	Function string    //请求的 function 模块 key
-	Uid      uint64    //请求者id
+	Mod      string //请求的 mod 模块 key
+	Function string //请求的 function 模块 key
+	Uid      uint64 //请求者id
+	RoomId   uint64
 	CallType uint32    // 1 req  2 res 3 push
 	Agent    *TcpAgent //网络链接
 	Req      []byte    //请求的信息

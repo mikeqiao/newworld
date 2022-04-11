@@ -57,12 +57,16 @@ func (p *Processor) Marshal(u *net.CallData, in interface{}) ([]byte, error) {
 	msg.UserId = u.Uid
 	msg.Context = u.Context
 	msg.CallType = u.CallType
-	data, err := proto.Marshal(in.(proto.Message))
-	if nil != err {
-		log.Error("err:%v", err)
-		return nil, err
+	if nil != in {
+		data, err := proto.Marshal(in.(proto.Message))
+		if nil != err {
+			log.Error("err:%v", err)
+			return nil, err
+		}
+		msg.MsgInfo = data[:]
+	} else {
+		msg.MsgInfo = u.Req
 	}
-	msg.MsgInfo = data[:]
 	msgData, err := proto.Marshal(msg)
 	if nil == err {
 		return msgData, err
