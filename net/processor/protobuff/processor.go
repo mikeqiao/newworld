@@ -35,6 +35,7 @@ func (p *Processor) Unmarshal(a *net.TcpAgent, data []byte) error {
 		uData.Req = msg.MsgInfo
 		uData.CallType = msg.CallType
 		uData.Context = msg.Context
+		uData.RoomId = a.GetBindData(msg.Mod)
 		return p.Route(uData)
 	}
 }

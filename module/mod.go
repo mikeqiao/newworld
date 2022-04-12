@@ -111,6 +111,9 @@ func (m *ModCluster) Close() {
 	m.wg.Wait()
 }
 func (m *ModCluster) Route(u *net.CallData) error {
+	if 0 == u.RoomId {
+		u.RoomId = m.GetRecommendRoom()
+	}
 	m.lock.RLock()
 	r, ok := m.ModRoom[u.RoomId]
 	m.lock.RUnlock()
@@ -121,4 +124,15 @@ func (m *ModCluster) Route(u *net.CallData) error {
 		r.Call(u)
 	}
 	return nil
+}
+
+func (m *ModCluster) GetRecommendRoom() uint64 {
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+	for k, v := range m.ModRoom {
+		if nil != v {
+			return k
+		}
+	}
+	return 0
 }

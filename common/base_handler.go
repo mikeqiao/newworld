@@ -11,6 +11,7 @@ const (
 )
 
 const (
-	BaseMod_AgentTick  = "BaseModAgentTick"
-	BaseMod_AgentCheck = "BaseModAgentCheck"
+	BaseMod_AgentTick   = "BaseModAgentTick"
+	BaseMod_AgentCheck  = "BaseModAgentCheck"
+	BaseMod_ClientLogin = "BaseModClientLogin"
 )

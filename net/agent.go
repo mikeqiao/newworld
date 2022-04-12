@@ -42,7 +42,7 @@ type TcpAgent struct {
 	agentState int32    //agent 状态
 	RemoteMod  []string //连接对方提供的 mod 模块
 	//附加属性
-	userData interface{} //和agent 绑定的相关 数据
+	ModBind map[string]uint64
 }
 
 func (a *TcpAgent) Init(conn *TCPConn, tp Processor, writeNum uint32, unCheckLifetime, tickLifetime int64, c chan uint64, name string, localUid uint64) {
@@ -67,6 +67,7 @@ func (a *TcpAgent) Init(conn *TCPConn, tp Processor, writeNum uint32, unCheckLif
 	a.agentState = Agent_Init
 	a.Name = name
 	a.LocalUId = localUid
+	a.ModBind = make(map[string]uint64)
 }
 
 func (a *TcpAgent) GetRemoteAddr() string {
@@ -101,8 +102,17 @@ func (a *TcpAgent) GetState() int32 {
 	return a.agentState
 }
 
-func (a *TcpAgent) SetBindData(date interface{}) {
-	a.userData = date
+func (a *TcpAgent) SetBindData(modName string, modId uint64) {
+	a.ModBind[modName] = modId
+}
+
+func (a *TcpAgent) GetBindData(modName string) uint64 {
+	id, ok := a.ModBind[modName]
+	if !ok {
+		log.Error("no this bind Mod name:%", modName)
+		return 0
+	}
+	return id
 }
 
 func (a *TcpAgent) Start(wg *sync.WaitGroup) {
