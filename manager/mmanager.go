@@ -17,7 +17,7 @@ func (m *MManager) Init() {
 	m.BaseMod = new(BaseMod)
 	m.BaseMod.Init()
 	m.ModRoot = new(DefaultModRoot)
-	m.BaseMod.Init()
+	m.ModRoot.Init()
 }
 
 func (m *MManager) SetModRoot(d *DefaultModRoot) {
