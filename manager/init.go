@@ -47,7 +47,7 @@ func Close() {
 }
 
 func RegisterMod(modName []string) {
-	err := ModManager.RegisterMod(modName)
+	err := ModManager.RegisterMod(modName, nil)
 	if nil != err {
 		log.Fatal("err:%v", err)
 	}
