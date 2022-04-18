@@ -35,7 +35,7 @@ type TcpAgent struct {
 	conn      Conn        //网络连接
 	closeSign chan bool   //关闭通知 chan
 	WriteChan chan []byte //待处理发送消息 chan
-
+	closeUid  chan uint64 //关闭通知 chan
 	//生效控制类属性
 	startTime  int64    //链接开始的时间戳
 	tick       int64    //上次心跳的时间戳
@@ -54,7 +54,7 @@ func (a *TcpAgent) Init(conn *TCPConn, tp Processor, writeNum uint32, unCheckLif
 	}
 	a.WriteChan = make(chan []byte, a.PendingWriteNum)
 	a.closeSign = make(chan bool, 1)
-
+	a.closeUid = c
 	//状态属性
 	a.UnCheckLifetime = 5
 	if unCheckLifetime > 0 {
@@ -107,6 +107,9 @@ func (a *TcpAgent) SetBindData(modName string, modId uint64) {
 }
 
 func (a *TcpAgent) GetBindData(modName string) uint64 {
+	if modName == common.Mod_Base {
+		return 0
+	}
 	id, ok := a.ModBind[modName]
 	if !ok {
 		log.Error("no this bind Mod name:%", modName)
@@ -202,6 +205,7 @@ func (a *TcpAgent) Close() {
 func (a *TcpAgent) DoClose() {
 	if a.agentState != Agent_Closing {
 		a.closeSign <- true
+		a.closeUid <- a.UId
 	}
 }
 

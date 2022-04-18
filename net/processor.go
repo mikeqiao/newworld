@@ -7,14 +7,16 @@ import (
 )
 
 type CallData struct {
-	Mod      string //请求的 mod 模块 key
-	Function string //请求的 function 模块 key
-	Uid      uint64 //请求者id
-	RoomId   uint64
-	CallType uint32    // 1 req  2 res 3 push
-	Agent    *TcpAgent //网络链接
-	Req      []byte    //请求的信息
-	Context  []byte    //传递的上下文
+	Mod          string //请求的 mod 模块 key
+	Function     string //请求的 function 模块 key
+	Uid          uint64 //请求者id
+	RoomId       uint64
+	BackRoomId   uint64    //异步返回处理的房间id
+	BackFunction string    //异步返回处理的方法
+	CallType     uint32    // 1 req  2 res 3 push
+	Agent        *TcpAgent //网络链接
+	Req          []byte    //请求的信息
+	Context      []byte    //传递的上下文
 }
 
 func (u *CallData) GetReqMsg(message proto.Message) error {

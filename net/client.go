@@ -84,6 +84,7 @@ func (t *TCPClient) ReStart() {
 
 func (t *TCPClient) Close() {
 	t.Closed = true
+	t.CloseChannel <- 1
 	t.Agent.DoClose()
 }
 

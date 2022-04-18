@@ -50,7 +50,6 @@ func (t *TCPServer) run(wg *sync.WaitGroup) {
 				time.Sleep(tempDelay)
 				continue
 			}
-			wg.Done()
 			goto Loop
 		}
 		tempDelay = 0
